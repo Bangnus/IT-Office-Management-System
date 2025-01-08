@@ -1,0 +1,93 @@
+version: '3.8' # กำหนดเวอร์ชันของ Docker Compose ที่ใช้
+
+services:
+  # ระบุ services ที่จะรันใน Docker Compose
+
+  frontend:
+    restart: always
+    platform: linux/x86_64
+    container_name: itoms-frontend
+    build: ./frontend
+    ports:
+      - '5173:5173'
+    # run คำสั่งที่ต้องการ
+    command: npm run dev
+    develop:
+      watch:
+        - action: sync
+          path: ./frontend
+          target: /app
+          ignore:
+            - node_modules/
+        - action: rebuild
+          path: package.json
+    # การ map volumes ระหว่าง container กับ project ex -> porject path:contailner path
+    # ประโยชน์ เมื่อมีการเปลี่ยน code ใน path ของ project ใน container จะเปลียนตามไปด้วย
+    volumes:
+      - ./frontend/:/app
+      - /app/node_modules
+    environment:
+      - CHOKIDAR_USEPOLLING=true #เพื่อการ docker auto run ในระบบที่ไม่รองรับ inotify เช่น Windows
+      - WATCHPACK_POLLING=true #ใช้เพื่อสั่งให้ Watchpack ใช้ polling แทนระบบ inotify ที่ไม่รองรับ Docker ใน Windows
+
+  backend:
+    # ชื่อ service ของ Node.js server
+    container_name: itoms-backend # ตั้งชื่อ container ว่า "node"
+    build: ./backend
+    ports:
+      - "5000:5000" # map พอร์ต 5000 ของ container กับพอร์ต 5000 ของ host machine
+    depends_on:
+      postgres:
+        condition: service_healthy # ระบุว่า service "node-server" จะเริ่มต้นหลังจาก "postgres" พร้อมใช้งานแล้ว
+    volumes:
+      - ./backend/:/app # map directory ปัจจุบันไปที่ /app ใน container
+      - /app/node_modules # ป้องกันไม่ให้ node_modules ถูกแชร์ระหว่าง host และ container
+    command: npm run dev # คำสั่งที่จะรันใน container เมื่อเริ่มต้น ใช้ในการรันเซิร์ฟเวอร์ในโหมด development
+    restart: always # ระบุว่า container ควร restart เสมอหากเกิดข้อผิดพลาด
+    develop:
+      watch:
+        - action: sync
+          path: ./backend
+          target: /app
+          ignore:
+            - node_modules/ # ไม่ให้ sync โฟลเดอร์ node_modules
+        - action: rebuild
+          path: package.json # รีบิลด์โปรเจกต์เมื่อมีการเปลี่ยนแปลงในไฟล์ package.json
+    platform: linux/x86_64 # ระบุ platform ที่ใช้เป็น linux/x86_64
+
+  postgres:
+    # ชื่อ service ของ PostgreSQL
+    image: postgres:latest # ใช้ image ของ PostgreSQL เวอร์ชันล่าสุดจาก Docker Hub
+    container_name: itoms-postgres # ตั้งชื่อ container ว่า "postgres"
+    restart: always # ระบุว่า container ควร restart เสมอหากเกิดข้อผิดพลาด
+    environment:
+      POSTGRES_USER: root # ตั้งค่า username ของ PostgreSQL เป็น root
+      POSTGRES_PASSWORD: root # ตั้งค่ารหัสผ่านของ PostgreSQL เป็น root
+      POSTGRES_DB: itoms # ชื่อฐานข้อมูลที่ต้องการสร้างเมื่อเริ่มต้น
+    ports:
+      - "5432:5432" # map พอร์ต 5432 ของ container กับพอร์ต 5432 ของ host machine
+    volumes:
+      - postgres-data:/var/lib/postgresql/data # เก็บข้อมูลของ PostgreSQL ไว้ใน volume ชื่อ postgres-data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U root" ] # ตรวจสอบว่า PostgreSQL พร้อมใช้งานหรือไม่ โดยใช้คำสั่ง pg_isready
+      interval: 10s # ตรวจสอบสถานะทุกๆ 10 วินาที
+      retries: 5 # หากไม่สำเร็จ ให้ลองใหม่ 5 ครั้ง
+      start_period: 30s # เริ่มตรวจสอบหลังจากรอ 30 วินาที
+      timeout: 5s # กำหนด timeout ไว้ที่ 5 วินาทีต่อการตรวจสอบ
+
+  pgadmin:
+    # ชื่อ service ของ pgAdmin (GUI สำหรับจัดการ PostgreSQL)
+    image: dpage/pgadmin4 # ใช้ image ของ pgAdmin4 จาก Docker Hub
+    container_name: itoms-pgadmin # ตั้งชื่อ container ว่า "pgadmin"
+    restart: always # ระบุว่า container ควร restart เสมอหากเกิดข้อผิดพลาด
+    ports:
+      - "8080:80" # map พอร์ต 80 ของ container กับพอร์ต 8080 ของ host machine
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com # ตั้งค่า email สำหรับเข้าใช้งาน pgAdmin
+      PGADMIN_DEFAULT_PASSWORD: root # ตั้งค่ารหัสผ่านสำหรับเข้าใช้งาน pgAdmin
+    depends_on:
+      postgres:
+        condition: service_healthy # ระบุว่า service "pgadmin" จะเริ่มต้นหลังจาก "postgres" พร้อมใช้งานแล้ว
+
+volumes:
+  postgres-data: # สร้าง volume ชื่อ postgres-data เพื่อเก็บข้อมูลของ PostgreSQL

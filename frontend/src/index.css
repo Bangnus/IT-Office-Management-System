@@ -1,0 +1,56 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@keyframes spin {
+    
+
+from{
+    transform: rotate(0deg);
+}
+to{
+    transform: rotate(360deg);
+    }
+}
+.spin{
+    animation: spin 40s linear infinite;
+}
+
+body {
+    @apply bg-gray-100;
+  }
+
+  @font-face  {
+    font-family: "regular";
+    src: local("NotoSansThai-Regular"),
+    url('./assets/fonts/NotoSansThai-Regular.ttf') format("truetype");
+  }
+  
+  @font-face {
+    font-family: "medium";
+    src: local("NotoSansThai-Medium"),
+    url('./assets/fonts/NotoSansThai-Medium.ttf') format("truetype");
+  }
+  
+  @font-face {
+    font-family: "semibold";
+    src: local("NotoSansThai-SemiBold"),
+    url('./assets/fonts/NotoSansThai-SemiBold.ttf') format("truetype");
+  }
+  
+  @font-face {
+    font-family: "bold";
+    src: local("NotoSansThai-Bold"),
+    url('./assets/fonts/NotoSansThai-Bold.ttf') format("truetype");
+  }
+  
+  @layer utilities {
+      .no-scrollbar::-webkit-scrollbar {
+          display: none;
+      }
+    /* Hide scrollbar for IE, Edge and Firefox */
+      .no-scrollbar {
+          -ms-overflow-style: none;  /* IE and Edge */
+          scrollbar-width: none;  /* Firefox */
+      }
+  }
