@@ -1,6 +1,6 @@
-# CMS Template
+# IT Office Management System
 
-# In this project is a Content Management System Templete
+# In this project is a Content Management System 
 
 Feature
 - authenticate using passport
@@ -39,7 +39,6 @@ Back-End
  ┣ cors -> http and https middleware
  ┣ prisma -> database orm
  ┣ jwt -> jsonwebtoken
- ┣ redis -> client cache in memory
  ┣ pgsql -> pg database
  ┗ mssql -> connect database on promise
 ``` 
@@ -70,8 +69,6 @@ npx prisma migrate dev --name <migrate name>
 Endpoint of all services in project
 ```
 fontend -> 127.0.0.1:5173
-backend -> 127.0.0.1:3000
-redis gui -> 127.0.0.1:8001
-redis cli -> 127.0.0.1:6379
+backend -> 127.0.0.1:5000
 pg database -> 127.0.0.1:5432
 ```
