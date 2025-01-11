@@ -3,7 +3,8 @@ import PropTypes from 'prop-types';
 import { useSelector, useDispatch } from "react-redux";
 import Cookies from 'js-cookie';
 import { useNavigate } from "react-router-dom";
-import { authenticateAgency } from "../slicers/authenticateSlicer";
+import { authenticateUser } from "../slicers/authenticateSlicer";
+
 
 const AuthContext = createContext();
 
@@ -11,12 +12,11 @@ const AuthProvider = ({ children }) => {
 
     const navigate = useNavigate();
     const dispatch = useDispatch();
-    const currentAgency = useSelector((state) => state.auth.currentAgency);
+    const currentUser = useSelector((state) => state.auth.currentUser);
     const [token, setToken] = useState(Cookies.get('authToken') || "");
-
     const SiginAction = async (data) => {
         try {
-            const response = await dispatch(authenticateAgency(data));
+            const response = await dispatch(authenticateUser(data));
             if (response.payload.status === true) {
                 return { status: true };
             }
@@ -31,8 +31,8 @@ const AuthProvider = ({ children }) => {
         navigate('/authenticate/signin');
     };
 
-    return(
-        <AuthContext.Provider value={{ SiginAction, SignoutAction, token, currentAgency }}>
+    return (
+        <AuthContext.Provider value={{ SiginAction, SignoutAction, token, currentUser }}>
             {children}
         </ AuthContext.Provider>
     );

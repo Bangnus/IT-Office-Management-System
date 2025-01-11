@@ -20,3 +20,49 @@ model users {
   lastName  String?
   password  String?
 }
+
+//ตารางนักเรียน
+model student {
+  id              Int              @id @default(autoincrement())
+  studentID       String?          @unique
+  firstname       String?
+  lastname        String?
+  image           String?
+  classroomNumber classroomNumber? @relation(fields: [classroom], references: [id])
+  classroom       Int?
+}
+
+//ตารางปวช
+model vc {
+  id                Int               @id @default(autoincrement())
+  classroom         String?           @unique
+  vcclassroomNumber classroomNumber[]
+}
+
+//ห้อง
+model classroomNumber {
+  id        Int       @id @default(autoincrement())
+  className String?
+  vc        vc?       @relation(fields: [vcID], references: [id])
+  vcID      Int?
+  vcstudent student[]
+}
+
+//ตารางปวส
+// model hvc {
+//   id        Int     @id @default(autoincrement())
+//   classroom String?
+// }
+
+//ตารางป.ตรี
+// model ba {
+//   id        Int     @id @default(autoincrement())
+//   classroom String?
+// }
+
+// //ตารางห้องเรียน
+// model classroom {
+//   id       Int     @id @default(autoincrement())
+//   roomID   String?
+//   roomname String?
+// }

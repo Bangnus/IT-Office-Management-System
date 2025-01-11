@@ -18,7 +18,7 @@ const PackageViewComponent = () => {
         }
     ];
 
-    return(
+    return (
         <DashMasterLayout title="Package Management" path={path}>
             <BannerComponent />
         </DashMasterLayout>
