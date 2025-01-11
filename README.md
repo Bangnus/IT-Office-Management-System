@@ -2,10 +2,6 @@
 
 # In this project is a Content Management System 
 
-Feature
-- authenticate using passport
-- UX/UI
-
 Front-End
 
 ```
