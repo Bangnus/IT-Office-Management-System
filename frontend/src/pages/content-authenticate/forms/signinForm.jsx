@@ -19,7 +19,7 @@ import Cookies from 'js-cookie';
 const signinForm = () => {
 
     const navigate = useNavigate();
-    const [email, setEmail] = useState('');
+    const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const isFatcing = useRef(false);
@@ -31,9 +31,9 @@ const signinForm = () => {
     const handleSignup = async () => {
         try {
             setIsLoading(true);
-            if (!email ||!password) throw 'All fields are required';
+            if (!username ||!password) throw 'All fields are required';
             let data = {
-                email: email,
+                username: username,
                 password: password
             };
             const response = await auth.SiginAction(data);
@@ -57,18 +57,18 @@ const signinForm = () => {
 
     useEffect(() => {
         const getdataField = async () => {
-            const email = localStorage.getItem('email');
+            const username = localStorage.getItem('username');
             const password = localStorage.getItem('password');
-            autoSignIn(email, password);
+            autoSignIn(username, password);
         };
 
-        const autoSignIn = async (email, password) => {
+        const autoSignIn = async (username, password) => {
             try { 
                 if (isFatcing.current) return;
                 setIsLoading(true);
               
                 let FormData = {
-                    email: email,
+                    username: username,
                     password: password
                 }
                 isFatcing.current = true;
@@ -76,9 +76,9 @@ const signinForm = () => {
                 isFatcing.current = false;                
     
                 if (response.status === true) {
-                    await localStorage.removeItem('email');
+                    await localStorage.removeItem('username');
                     await localStorage.removeItem('password');
-                    setEmail('');
+                    setUsername('');
                     setPassword('');
                     setIsLoading(false);
                     if (lastPage === undefined || lastPage === '/') {
@@ -93,7 +93,7 @@ const signinForm = () => {
             }
         };
 
-        if (localStorage.getItem('email') && localStorage.getItem('password')) {
+        if (localStorage.getItem('username') && localStorage.getItem('password')) {
             getdataField();
         }
     }, [auth, navigate, authToken, lastPage, localpath]);
@@ -115,7 +115,7 @@ const signinForm = () => {
             </div>
             <div className="my-[20px] animate-fade-left animate-once animate-duration-1000">
                 <div className="my-5">
-                    <InputComponet color="blue" label="Email or Phone number" value={email} OnChange={setEmail} />
+                    <InputComponet color="blue" label="Username" value={username} OnChange={setUsername} />
                 </div>
                 <div className="mt-5 mb-2">
                     <InputComponet color="blue" type="password" label="Password" value={password} OnChange={setPassword} />

@@ -7,7 +7,7 @@ import ButtonFullComponent from '../../../components/content-buttons/full-button
 import GoogleIcon from '../../../assets/Icons/google-icon.png';
 import FacebookIcon from '../../../assets/Icons/facebook-icon.png';
 import { ToastifyError, ToastifySuccess } from '../../../components/content-alert/toastify';
-import { createAgency } from '../../../slicers/authenticateSlicer';
+import { createUser } from '../../../slicers/authenticateSlicer';
 import { useDispatch } from 'react-redux';
 
 //libs
@@ -19,36 +19,33 @@ import Cookies from 'js-cookie';
 const signupForm = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const [username, setUsername] = useState('');
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
-    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [confirmPassword, setConfirmPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const authToken = Cookies.get('authToken');
 
     const handleSignup = async () => {
         try {
             setIsLoading(true);
-            if (!firstName ||!lastName ||!email ||!password ||!confirmPassword) throw 'All fields are required';
+            if (!firstName ||!lastName ||!username ||!password ) throw 'All fields are required';
 
-            if (password!== confirmPassword) throw `passwords don't match`;
         
             let data = {
+                username: username,
                 firstName: firstName,
                 lastName: lastName,
-                email: email,
                 password: password
             };
             
-            const response = await dispatch(createAgency(data));
+            const response = await dispatch(createUser(data));
 
             if (response.payload.status === true) {
-                await localStorage.setItem('email', email);
+                await localStorage.setItem('username', username);
                 await localStorage.setItem('password', password);
                 ToastifySuccess({ lable: 'Account created successfully' });
-                setConfirmPassword('');
-                setEmail('');
+                setUsername('');
                 setFirstName('');
                 setLastName('');
                 setPassword('');
@@ -59,7 +56,8 @@ const signupForm = () => {
             }
         } catch (error) {
             setIsLoading(false);
-            ToastifyError({ lable: error });
+            ToastifyError({ lable: "Username already exists" });
+            console.error(error)
         }
     };
 
@@ -83,13 +81,10 @@ const signupForm = () => {
                     <InputComponet color="blue" label="LastName" value={lastName} OnChange={setLastName} />
                 </div>
                 <div className="my-5">
-                    <InputComponet color="blue" label="Email" value={email} OnChange={setEmail} />
+                    <InputComponet color="blue" label="Username" value={username} OnChange={setUsername} />
                 </div>
                 <div className="my-5">
                     <InputComponet type="password" color="blue" label="password" value={password} OnChange={setPassword} />
-                </div>
-                <div className="mt-5 mb-2">
-                    <InputComponet type="password" color="blue" label="Confirm Password" value={confirmPassword} OnChange={setConfirmPassword} />
                 </div>
             </div>
             <div className="animate-fade-up animate-once animate-duration-1000">
@@ -98,19 +93,8 @@ const signupForm = () => {
             <div className="text-center mt-5 text-[14px] text-primary animate-fade-up animate-once animate-duration-1000 animate-delay-200  xs:mt-3 ">
                 <Link to="/authenticate/signin">If you account already exists your can click me go to signin.</Link>
             </div>
-            <div className="animate-once animate-duration-1000 animate-delay-200">
-                <Divider plain>or</Divider>
-            </div>
-            <div className="flex justify-between gap-x-5 animate-fade-up animate-once animate-duration-1000 animate-delay-200 xs:flex-col xs:gap-y-5 lg:flex-col lg:gap-y-5">
-                <OutlineButtonComponent otherStyle="flex items-center justify-center gap-x-2 w-full " color="blue" >
-                    <img className="w-[20px]" src={GoogleIcon} alt="Logogoogle" />
-                    Sign in with Google
-                </OutlineButtonComponent>
-                <OutlineButtonComponent otherStyle="flex items-center justify-center gap-x-2 w-full" color="blue">
-                    <img className="w-[20px]" src={FacebookIcon} alt="Logofacebook" />
-                    Sign in with Facebook
-                </OutlineButtonComponent>
-            </div>
+           
+           
         </div>
     )
 }

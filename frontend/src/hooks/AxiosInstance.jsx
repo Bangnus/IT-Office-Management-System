@@ -3,7 +3,6 @@ import axios from "axios";
 import BaseUrl from "./baseUrl";
 
 const authToken = Cookies.get("authToken");
-
 const AxiosInstance = axios.create({
     baseURL: BaseUrl,
     timeout: 10000,

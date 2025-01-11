@@ -6,7 +6,13 @@ import ViewDashboardComponent from "./pages/content-dashboard/content-main/dashb
 import OrdersView from "./pages/content-dashboard/content-orders/view-orders";
 import PackageViewComponent from "./pages/content-dashboard/content-package/package-view";
 import PageNotFound from "./pages/content-error/404-notfound";
-
+import ViewClassVC from "./pages/content-dashboard/content-class/group-class/view-class-vc";
+import ViewClassHvc from "./pages/content-dashboard/content-class/group-class/view-class-hvc";
+import Editclassroom from "./pages/content-dashboard/content-class/conten-editclass/editclassroom";
+import Viewclassteacher from "./pages/content-dashboard/content-class/group-class/view-class-teacher";
+import ViewClassBa from "./pages/content-dashboard/content-class/group-class/view-class-ba";
+import ViewManageClass from "./pages/content-dashboard/content-class/group-class/view-manage-class";
+import ViewClassStudent from "./pages/content-dashboard/content-class/content-student/view-class-student";
 const App = () => {
   return (
     <AuthProvider>
@@ -19,8 +25,13 @@ const App = () => {
         {/* Private Route   */}
         <Route element={<PrivateRoute />}>
           <Route path="/dashboard" element={<ViewDashboardComponent />} />
-          <Route path="/home/orders-view" element={<OrdersView />} />
-          <Route path="/home/pakage-menagement" element={<PackageViewComponent />} />
+          <Route path="/home/teacher" element={<Viewclassteacher />} />
+          <Route path="/home/class-vc" element={<ViewClassVC />} />
+          <Route path="/home/class-hvc" element={<ViewClassHvc />} />
+          <Route path="/home/class-ba" element={<ViewClassBa />} />
+          <Route path="/home/manage-classroom" element={<ViewManageClass />} />
+          <Route path="/class/student/:id" element={<ViewClassStudent />} />
+          <Route path="/editingClassRoom/:id" element={<Editclassroom />} />
         </Route>
       </Routes>
     </AuthProvider>

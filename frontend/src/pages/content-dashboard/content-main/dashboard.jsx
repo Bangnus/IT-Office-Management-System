@@ -4,19 +4,9 @@ import MemberTypeComponent from "./content/member-type";
 
 const ViewDashboardComponent = () => {
 
-    const path = [
-        {
-            label: "Home",
-            active: false,
-        },
-        {
-            label: "Seller Center",
-            active: true,
-        }
-    ];
 
     return(
-      <DashMasterLayout title="Seller Center" path={path}>
+      <DashMasterLayout title="หน้าหลัก">
         <HereDashboard />
         <MemberTypeComponent />
         <MemberTypeComponent />

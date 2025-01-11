@@ -2,13 +2,13 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import AxiosInstance from "../hooks/AxiosInstance";
 import Cookies from 'js-cookie';
 
-export const createAgency = createAsyncThunk('authenticate/createAgency', async (data) => {
+export const createUser = createAsyncThunk('authenticate/createUser', async (data) => {
     try {
-        const response = await AxiosInstance.post('/authenticate/createagentcy', {
-            email: data.email,
-            password: data.password,
+        const response = await AxiosInstance.post('/auth/signup', {
+            username: data.username,
             firstName: data.firstName,
-            lastName: data.lastName
+            lastName: data.lastName,
+            password: data.password
         });
 
         return { status: true, data: response.data.body };
@@ -17,10 +17,10 @@ export const createAgency = createAsyncThunk('authenticate/createAgency', async 
     }
 });
 
-export const authenticateAgency = createAsyncThunk('authenticate/authenticateAgency', async (data) => {
+export const authenticateUser = createAsyncThunk('authenticate/authenticateUser', async (data) => {
     try {
-        const response = await AxiosInstance.post('/authenticate/signin', {
-            email: data.email,
+        const response = await AxiosInstance.post('/auth/signin', {
+            username: data.username,
             password: data.password
         });
 
@@ -32,9 +32,9 @@ export const authenticateAgency = createAsyncThunk('authenticate/authenticateAge
     }
 });
 
-export const fecthCurrentAgency = createAsyncThunk('authenticate/fecthCurrentAgency', async () => {
+export const fetchCurrentUser = createAsyncThunk('authenticate/fetchCurrentUser', async () => {
     try {
-        const response = await AxiosInstance.get('/currentagentcy');
+        const response = await AxiosInstance.get('/auth/currenuser');
         return { status: true, data: response.data.body.user };
     } catch (error) {
         return { status: false, error: error.message };
@@ -44,7 +44,7 @@ export const fecthCurrentAgency = createAsyncThunk('authenticate/fecthCurrentAge
 const authenticateSlice = createSlice({
     name: 'authenticate',
     initialState: {
-        currentAgency: null,
+        currentUser: null,
         loading: false,
         error: null,
     },
@@ -61,12 +61,12 @@ const authenticateSlice = createSlice({
             (action) => action.type.endsWith("/fulfilled"),
             (state, action) => {
                 state.loading = false;
-                if (action.type.includes('createAgency')) {
-                    state.currentAgency = null;
-                } else if (action.type.includes('authenticateAgency')) {
-                    state.currentAgency = action.payload;
-                } else if (action.type.includes('fecthCurrentAgency')) {
-                    state.currentAgency = action.payload;
+                if (action.type.includes('createUser')) {
+                    state.currentUser = null;
+                } else if (action.type.includes('authenticateUser')) {
+                    state.currentUser = action.payload;
+                } else if (action.type.includes('fetchCurrentUser')) {
+                    state.currentUser = action.payload;
                 }
             }
         )

@@ -17,7 +17,7 @@ const OrdersView = () => {
         }
     ];
 
-    return(
+    return (
         <DashMasterLayout title="Orders" path={path}>
             <div>
                 sdsdsd

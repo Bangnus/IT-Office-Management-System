@@ -24,9 +24,10 @@ model users {
 //ตารางนักเรียน
 model student {
   id              Int              @id @default(autoincrement())
-  studentID       String?
+  studentID       String?          @unique
   firstname       String?
   lastname        String?
+  image           String?
   classroomNumber classroomNumber? @relation(fields: [classroom], references: [id])
   classroom       Int?
 }
@@ -34,7 +35,7 @@ model student {
 //ตารางปวช
 model vc {
   id                Int               @id @default(autoincrement())
-  classroom         String?
+  classroom         String?           @unique
   vcclassroomNumber classroomNumber[]
 }
 
@@ -48,16 +49,16 @@ model classroomNumber {
 }
 
 //ตารางปวส
-model hvc {
-  id        Int       @id @default(autoincrement())
-  classroom String?
-}
+// model hvc {
+//   id        Int     @id @default(autoincrement())
+//   classroom String?
+// }
 
 //ตารางป.ตรี
-model ba {
-  id        Int       @id @default(autoincrement())
-  classroom String?
-}
+// model ba {
+//   id        Int     @id @default(autoincrement())
+//   classroom String?
+// }
 
 // //ตารางห้องเรียน
 // model classroom {
