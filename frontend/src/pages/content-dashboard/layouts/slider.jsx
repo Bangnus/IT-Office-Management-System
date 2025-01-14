@@ -25,7 +25,7 @@ const SliderComponent = () => {
         Cookies.set('sliderSize', !sliderSize);
     };
 
-    const handleToggleDropdown = (index,path) => {
+    const handleToggleDropdown = (index, path) => {
         Cookies.set('MenuPath', path)
         setIsOpenMenu(isOpenMenu === index ? null : index);
     };
@@ -46,7 +46,7 @@ const SliderComponent = () => {
         },
         {
             label: 'ข้อมูลนักเรียน ปวช',
-            path: '/home/class-vc',
+            path: '/home/Vocational-Certificate',
             icon: <PiShoppingBagOpenBold />,
             // subMenu: fetchClass?.filter(item => item.classroom.includes("ปวช"))?.map(item => ({
             //     label: item.classroom,
@@ -55,7 +55,7 @@ const SliderComponent = () => {
         },
         {
             label: 'ข้อมูลนักเรียน ปวส',
-            path: '/home/class-hvc',
+            path: '/home/Higher-Vocational-Certificate',
             icon: <PiShoppingBagOpenBold />,
             // subMenu: fetchClass?.filter(item => item.classroom.includes("ปวส"))?.map(item => ({
             //     label: item.classroom,
@@ -64,7 +64,7 @@ const SliderComponent = () => {
         },
         {
             label: 'ข้อมูลนักเรียน ป.ตรี',
-            path: '/home/class-ba',
+            path: '/home/Bachelors-Degree',
             icon: <PiShoppingBagOpenBold />,
             // subMenu: fetchClass?.filter(item => item.classroom.includes("ป.ตรี"))?.map(item => ({
             //     label: item.classroom,
@@ -84,8 +84,8 @@ const SliderComponent = () => {
                 <div className={`${sliderSize ? 'hidden' : 'animate-fade-right animate-once animate-delay-100 animate-ease-in-out'} lg:hidden`}>
                     <LogoComponent mode={true} />
                 </div>
-                <button 
-                    onClick={handlerChangeSize} 
+                <button
+                    onClick={handlerChangeSize}
                     className="text-[30px] h-[35px] w-[35px] flex justify-center text-primary items-center hover:bg-primary hover:text-white duration-100 ease-in-out rounded-md"
                 >
                     {sliderSize ? <RiArrowRightDoubleLine /> : <RiArrowLeftDoubleLine />}
@@ -94,13 +94,13 @@ const SliderComponent = () => {
             <div className="w-full grid grid-cols-1 gap-y-2 duration-100 ease-in-out">
                 {MenuOption.map((item, index) => (
                     <div key={index}>
-                        <NavLink 
-                            className={({ isActive }) => 
-                                isActive ? 'w-full px-3 flex items-center border-l-[5px] border-primary py-2 bg-blue-400 text-white font-primaryRegular text-[16px]' 
-                                : 'w-full px-3 flex items-center border-white border-l-[5px] py-2 text-primaryofdashboard font-primaryRegular text-[16px]'
-                            } 
-                            to={item.path} 
-                            onClick={() => handleToggleDropdown(index,item.path)}
+                        <NavLink
+                            className={({ isActive }) =>
+                                isActive ? 'w-full px-3 flex items-center border-l-[5px] border-primary py-2 bg-blue-400 text-white font-primaryRegular text-[16px]'
+                                    : 'w-full px-3 flex items-center border-white border-l-[5px] py-2 text-primaryofdashboard font-primaryRegular text-[16px]'
+                            }
+                            to={item.path}
+                            onClick={() => handleToggleDropdown(index, item.path)}
                         >
                             <div className={`flex items-center gap-x-3 lg:ml-1 ${sliderSize ? 'ml-1' : ''}`}>
                                 <div className="flex h-[35px] w-[35px] items-center justify-center rounded-md bg-primaryofdashboard text-white text-[16px]">
@@ -123,12 +123,12 @@ const SliderComponent = () => {
                                 {isOpenMenu === index && (
                                     <div>
                                         {item.subMenu.map((subItem, subIndex) => (
-                                            <NavLink 
-                                                key={subIndex} 
-                                                className={({ isActive }) => 
-                                                    isActive ? 'w-full px-3 flex items-center border-l-[5px] border-primary py-2 bg-blue-400 text-white font-primaryRegular text-[16px]' 
-                                                    : 'hover:bg-blue-200 w-full flex items-center border-white py-2 text-primaryofdashboard font-primaryRegular text-[16px]'
-                                                } 
+                                            <NavLink
+                                                key={subIndex}
+                                                className={({ isActive }) =>
+                                                    isActive ? 'w-full px-3 flex items-center border-l-[5px] border-primary py-2 bg-blue-400 text-white font-primaryRegular text-[16px]'
+                                                        : 'hover:bg-blue-200 w-full flex items-center border-white py-2 text-primaryofdashboard font-primaryRegular text-[16px]'
+                                                }
                                                 to={subItem.path}
                                             >
                                                 <span>{subItem.label}</span>

@@ -12,22 +12,13 @@ export const fetchStudent = createAsyncThunk('/student/fetchStudent', async () =
 
 export const createStudent = createAsyncThunk('/student/createStudent', async (data) => {
     try {
-        const formData = new FormData();
-        formData.append('studentID', data.studentID);
-        formData.append('firstname', data.firstname);
-        formData.append('lastname', data.lastname);
-        formData.append('classroom', data.classroom);
-        if (data.image) {
-            formData.append('image', data.image);
-        }
-
-        const res = await AxiosInstance.post('/addstudent', formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data',
-            },
-        });
-
-        return { status: true, data: res.data.body };
+        const res = await AxiosInstance.post('/addstudent', {
+            studentID: data.studentID,
+            firstname: data.firstname,
+            lastname: data.lastname,
+            classroom: data.classroom
+        })
+        return { status: true, data: res.data.body }
     } catch (error) {
         return { status: false, error: error.message };
     }
@@ -36,6 +27,38 @@ export const createStudent = createAsyncThunk('/student/createStudent', async (d
 export const fetchStudentID = createAsyncThunk('/student/fetchStudentID', async (id) => {
     try {
         const res = await AxiosInstance.get(`/students/${id}`)
+        return { status: true, data: res.data.body }
+    } catch (error) {
+        return { status: false, error: error.message };
+    }
+})
+
+export const deleteStudent = createAsyncThunk('/student/deltetStudent', async (id) => {
+    try {
+        const res = await AxiosInstance.delete(`/deletestudent/${id}`)
+        return { status: true, data: res.data.body }
+    } catch (error) {
+        return { status: false, error: error.message };
+    }
+})
+
+export const editStudent = createAsyncThunk('/student/editStudent', async ({ id, data }) => {
+    try {
+        const res = await AxiosInstance.put(`/editstudent/${id}`, {
+            studentID: data.studentID,
+            firstname: data.firstname,
+            lastname: data.lastname,
+        })
+        return { status: true, data: res.data.body }
+    } catch (error) {
+        return { status: false, error: error.message };
+    }
+
+})
+
+export const fetchEditStudentID = createAsyncThunk('/student/fetchEditStudentID', async (id) => {
+    try {
+        const res = await AxiosInstance.get(`/fetchEditstudent/${id}`)
         return { status: true, data: res.data.body }
     } catch (error) {
         return { status: false, error: error.message };
@@ -68,6 +91,12 @@ const classSlice = createSlice({
                     } else if (action.type.includes('createStudent')) {
                         state.currenclass = action.payload.data !== undefined ? action.payload.data : [];
                     } else if (action.type.includes('fetchStudentID')) {
+                        state.student = action.payload.data !== undefined ? action.payload.data : [];
+                    } else if (action.type.includes('deleteStudent')) {
+                        state.delete = action.payload.data !== undefined ? action.payload.data : [];
+                    } else if (action.type.includes('editStudent')) {
+                        state.student = action.payload.data !== undefined ? action.payload.data : [];
+                    } else if (action.type.includes('fetchEditStudentID')) {
                         state.student = action.payload.data !== undefined ? action.payload.data : [];
                     }
                 }

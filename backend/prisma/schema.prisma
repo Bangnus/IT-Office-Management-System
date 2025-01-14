@@ -27,7 +27,6 @@ model student {
   studentID       String?          @unique
   firstname       String?
   lastname        String?
-  image           String?
   classroomNumber classroomNumber? @relation(fields: [classroom], references: [id])
   classroom       Int?
 }
@@ -46,6 +45,14 @@ model classroomNumber {
   vc        vc?       @relation(fields: [vcID], references: [id])
   vcID      Int?
   vcstudent student[]
+  images    images[]
+}
+
+model images {
+  id                Int              @id @default(autoincrement())
+  image             String?
+  classroomNumberID Int?
+  classroomNumber   classroomNumber? @relation(fields: [classroomNumberID], references: [id])
 }
 
 //ตารางปวส

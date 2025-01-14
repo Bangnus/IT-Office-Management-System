@@ -10,6 +10,7 @@ import { RiEdit2Fill } from "react-icons/ri";
 import { TiDelete } from "react-icons/ti";
 import { IoIosCloseCircle } from 'react-icons/io';
 import ConfirmDeleteModal from '../../../../components/content-alert/ConfirmDeleteModal';
+import Cookies from 'js-cookie'
 
 const ViewClassVC = () => {
   const dispatch = useDispatch();
@@ -98,6 +99,9 @@ const ViewClassVC = () => {
     }
   }
 
+  const studentidPath = (Path) => {
+    Cookies.set('StudentPath', Path)
+  }
   return (
     <DashMasterLayout title="เพิ่มห้องเรียน ปวช.">
       {currenclass.length > 0 ? (
@@ -131,12 +135,14 @@ const ViewClassVC = () => {
                   />
                 </div>
                 {filteredClassrooms && filteredClassrooms.length > 0 ?
-                  filteredClassrooms
+                  [...filteredClassrooms]
                     .sort((a, b) => a.className.localeCompare(b.className))
                     .map((classroom) => (
                       <div key={classroom.id} className="my-5 flex justify-between items-center space-x-4 p-2 hover:bg-blue-50 transition-all duration-300 rounded-md border border-gray-300">
                         <Link to={`/class/student/${classroom.id}`} className="w-full">
-                          <div className=" text-lg font-medium text-gray-800 hover:text-blue-500 py-2 px-4 rounded-md transition-colors duration-200">
+                          <div className=" text-lg font-medium text-gray-800 hover:text-blue-500 py-2 px-4 rounded-md transition-colors duration-200"
+                            onClick={() => studentidPath(`/class/student/${classroom.id}`)}
+                          >
                             {classroom.className}
                           </div>
                         </Link>

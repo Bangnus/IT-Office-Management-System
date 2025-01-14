@@ -7,6 +7,7 @@ import DashMasterLayout from '../../layouts/master';
 import InputComponet from '../../../../components/content-input/input-full';
 import ButtonFullComponent from '../../../../components/content-buttons/full-button';
 import Cookies from 'js-cookie'
+import ConfirmDeleteModal from '../../../../components/content-alert/ConfirmDeleteModal';
 const Editclassroom = () => {
     const { id } = useParams();
     const dispatch = useDispatch();
@@ -25,6 +26,7 @@ const Editclassroom = () => {
             setClassName(room.className);
         }
     }, [fetchclassroom]);
+    
     const MenuPath = () => {
         const menuPath = Cookies.get('MenuPath')
         navigate(menuPath)
@@ -53,6 +55,8 @@ const Editclassroom = () => {
         }
     };
 
+
+  
     return (
         <DashMasterLayout title={"เเก้ไขห้องเรียน"}>
 
@@ -68,7 +72,6 @@ const Editclassroom = () => {
                     <ButtonFullComponent lable={"ยกเลิก"} color={"red"} func={MenuPath} />
                 </div>
             </div>
-
         </DashMasterLayout>
     );
 };

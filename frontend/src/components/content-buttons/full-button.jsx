@@ -2,9 +2,9 @@ import { Button } from "@material-tailwind/react";
 import PropTypes from "prop-types";
 import DotLoading from "../content-loading/dot-loading";
 
-const ButtonFullComponent = ({ lable, func, color, isLoading }) => {
+const ButtonFullComponent = ({ lable, func, color, isLoading,className }) => {
     return(
-        <Button className="w-full" onClick={func} color={color} disabled={isLoading}>{isLoading ? <DotLoading /> : lable}</Button>
+        <Button className={`w-full`} onClick={func} color={color} disabled={isLoading}>{isLoading ? <DotLoading /> : lable}</Button>
     );
 };
 
