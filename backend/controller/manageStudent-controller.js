@@ -7,20 +7,15 @@ exports.addstudent = async (req, res) => {
     try {
         // ตรวจสอบว่า req.body และ req.file ถูกส่งมาหรือไม่
         const { studentID, firstname, lastname, classroom } = req.body;
-        // if (!studentID || !firstname || !lastname || !classroom) {
-        //     return res.status(400).json({ message: "Missing required fields" });
-        // }
-        const classroomInt = parseInt(classroom, 10)
-        const image = req.file ? req.file.path : null;  // เก็บพาธของไฟล์
 
-        // หากมีไฟล์แนบให้เก็บ URL หรือ buffer ตามต้องการ
+        const classroomInt = parseInt(classroom, 10)
+
         const addstudent = await prisma.student.create({
             data: {
                 studentID,
                 firstname,
                 lastname,
                 classroom: classroomInt,
-                image: image || null,  // เก็บแค่ path ของไฟล์
             }
         });
 
@@ -126,7 +121,7 @@ exports.studentsID = async (req, res) => {
         const students = await prisma.student.findMany({
             where: {
                 classroomNumber: {
-                    vcID: Number(id)
+                    id: parseInt(id)
                 }
             },
             include: {
@@ -145,6 +140,26 @@ exports.studentsID = async (req, res) => {
         return res.status(500).json({
             message: "Error",
             error: error
+        })
+    }
+}
+
+exports.fetchEditstudentID = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const response = await prisma.student.findMany({
+            where: {
+                id: parseInt(id)
+            }
+        })
+        return res.status(200).json({
+            message: "ftching student successfully",
+            body: response,
+        })
+    } catch (error) {
+        return res.status(500).json({
+            message: "fetching student faild",
+            error: error.message
         })
     }
 }

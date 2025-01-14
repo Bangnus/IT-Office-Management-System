@@ -32,8 +32,12 @@ app.get('/', async (req, res) => {
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads'))); // ให้สามารถเข้าถึงไฟล์ในโฟลเดอร์ uploads ได้
 
-app.use('/api/auth', require('./routers/authenticate')); 
-readdirSync('./routers').map((r) => app.use('/api', passport.authenticate('jwt', { session: false }), require(`./routers/` + r)));
+app.use('/api/auth', require('./routers/authenticate'));
+
+readdirSync('./routers').map((r) =>
+    app.use('/api', passport.authenticate('jwt', { session: false }), require(`./routers/` + r))
+);
+
 console.log(readdirSync('./routers'))
 
 app.listen(port, () => {
