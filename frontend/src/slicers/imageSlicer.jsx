@@ -5,16 +5,17 @@ export const uploadimage = createAsyncThunk('image/uploadimage', async (formData
     try {
         const res = await AxiosInstance.post(`/uploadimage`, formData, {
             headers: {
-                'Content': 'multipart/form-data',
+                'Content-Type': 'multipart/form-data',
             }
-        })
+        });
         return { status: true, data: res.data.body }
     } catch (error) {
         return { status: false, error: error.message };
     }
-})
+});
 
-export const fetcgImageID = createAsyncThunk('/image/fetcgImageID', async (id) => {
+
+export const fetchImageID = createAsyncThunk('/image/fetcgImageID', async (id) => {
     try {
         const res = await AxiosInstance.get(`/previewimage/${id}`)
         return { status: true, data: res.data.body }
@@ -45,7 +46,7 @@ const imageSlicer = createSlice({
                 (state, action) => {
                     state.loading = false;
                     if (action.type.includes('uploadimage')) {
-                        state.image = action.payload.data !== undefined ? action.payload.data : [];
+                        state.currenImage = action.payload.data !== undefined ? action.payload.data : [];
                     } else if (action.type.includes('fetcgImageID')) {
                         state.image = action.payload.data !== undefined ? action.payload.data : [];
                     }
