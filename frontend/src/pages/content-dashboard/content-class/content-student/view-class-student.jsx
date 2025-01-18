@@ -47,16 +47,19 @@ const ViewClassStudent = () => {
             const className = StudentData[0]?.classroomNumber?.className || "ไม่มีข้อมูล";
             setClassName(className);
         } else (
-            setClassName('เพิ่มข้อมูลนักเรียน')
+            setClassName('')
         )
     }, [StudentData]);
 
     useEffect(() => {
+
         if (StudentData?.length > 0) {
             // ดึง className ของนักเรียนคนแรก
-            const classroom = StudentData[0]?.classroomNumber.vc?.classroom || "ไม่มีข้อมูล";
+            const classroom = StudentData[0]?.classroomNumber?.vc?.classroom || "ไม่มีข้อมูล";
             setClassRoom(classroom);
-        }
+        } else (
+            setClassRoom('')
+        )
     }, [StudentData]);
 
 
@@ -194,7 +197,7 @@ const ViewClassStudent = () => {
 
                     </div>
                     <div className="flex  py-2 items-center justify-between">
-                        <h1 className='text-lg font-semibold p-2'>ข้อมูลนักเรียน{classRoom}{className}</h1>
+                        <h1 className='text-lg font-semibold p-2'>ข้อมูลนักเรียน{classRoom} {className}</h1>
                         <div className="flex items-center gap-x-2">
                             {/* <label
                                 htmlFor="file-upload"
@@ -226,7 +229,7 @@ const ViewClassStudent = () => {
 
                     </div>
                     <div className="">
-                        <table className="w-full rounded-lg bg-white  table-fixed">
+                        <table className="w-full rounded-lg bg-white overflow-hidden ">
                             <thead className="text-white bg-blue-500">
                                 <tr>
                                     <th className="w-1/4 px-5 py-2 text-left font-semibold">รหัสนักเรียน</th>

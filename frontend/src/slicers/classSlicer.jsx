@@ -14,7 +14,7 @@ export const fetchclassVC = createAsyncThunk('class/fetchclassVC', async () => {
 
 export const createClassRoom = createAsyncThunk('class/createClassRoom', async (data) => {
     try {
-        const res = await AxiosInstance.post('/addclassroom', {
+        const res = await AxiosInstance.post('/addclass', {
             className: data.className,
             vcID: data.vcID
         });
@@ -26,7 +26,7 @@ export const createClassRoom = createAsyncThunk('class/createClassRoom', async (
 
 export const fetchClassRoom = createAsyncThunk('class/fetchClassRoom', async () => {
     try {
-        const res = await AxiosInstance.get('/fetchclassroom');
+        const res = await AxiosInstance.get('/fetchclass');
         return { status: true, data: Array.isArray(res.data.body) ? res.data.body : [] };
     } catch (error) {
         return { status: false, error: error.message };
@@ -35,7 +35,7 @@ export const fetchClassRoom = createAsyncThunk('class/fetchClassRoom', async () 
 
 export const editclassroom = createAsyncThunk('class/editclassroom', async ({ id, className }) => {
     try {
-        const res = await AxiosInstance.put(`/editclassroom/${id}`, { className });
+        const res = await AxiosInstance.put(`/editclass/${id}`, { className });
         return { status: true, data: res.data.body };
     } catch (error) {
         return { status: false, error: error.message };
@@ -44,7 +44,7 @@ export const editclassroom = createAsyncThunk('class/editclassroom', async ({ id
 
 export const fetchClassRoomID = createAsyncThunk('class/fetchClassRoom', async (id) => {
     try {
-        const res = await AxiosInstance.get(`/fetchclassroom/${id}`);
+        const res = await AxiosInstance.get(`/fetchclass/${id}`);
         return { status: true, data: Array.isArray(res.data.body) ? res.data.body : [] };
     } catch (error) {
         return { status: false, error: error.message };
@@ -53,7 +53,7 @@ export const fetchClassRoomID = createAsyncThunk('class/fetchClassRoom', async (
 
 export const deleteClassRoom = createAsyncThunk('class/deleteClassRoom', async (id) => {
     try {
-        const res = await AxiosInstance.delete(`deleteclassroom/${id}`)
+        const res = await AxiosInstance.delete(`deleteclass/${id}`)
         return { status: true, data: res.data.body };
     } catch (error) {
         return { status: false, error: error.message };

@@ -49,6 +49,7 @@ const Editclassroom = () => {
                 }, 500);
             } else {
                 ToastifyError({ lable: 'เกิดข้อผิดพลาดในการแก้ไขห้องเรียน' });
+                console.error(error)
             }
         } catch (error) {
             ToastifyError({ label: 'เกิดข้อผิดพลาด' });
