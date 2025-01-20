@@ -55,21 +55,26 @@ model images {
   classroomNumber   classroomNumber? @relation(fields: [classroomNumberID], references: [id])
 }
 
-//ตารางปวส
-// model hvc {
-//   id        Int     @id @default(autoincrement())
-//   classroom String?
-// }
-
-//ตารางป.ตรี
-// model ba {
-//   id        Int     @id @default(autoincrement())
-//   classroom String?
-// }
+//Teacher
+model Teacher {
+  id Int @id @default(autoincrement())
+  fullName String?
+  position String?
+  TeacherImage String?
+}
 
 // //ตารางห้องเรียน
-// model classroom {
-//   id       Int     @id @default(autoincrement())
-//   roomID   String?
-//   roomname String?
-// }
+model classroom {
+  id       Int     @id @default(autoincrement())
+  roomID   String?
+  roomname String?
+}
+
+//อุปกรณ์
+model equipment {
+  id Int @id @default(autoincrement())
+  name String?
+  number String?
+  image String?
+
+}

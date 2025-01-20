@@ -12,15 +12,15 @@ const {
 const router = express.Router();
 
 router.post('/addvc', addvc);
-router.post('/addclassroom', addclassroom)
+router.post('/addclass', addclassroom)
 
 router.get('/fetchVC', getvc)
-router.get('/fetchclassroom', fetchclassroom)
-router.get('/fetchclassroom/:id', fetchclassroomID)
+router.get('/fetchclass', fetchclassroom)
+router.get('/fetchclass/:id', fetchclassroomID)
 
-router.put('/editclassroom/:id', editclassroom)
+router.put('/editclass/:id', editclassroom)
 
-router.delete('/deleteclassroom/:id', deleteclassroom)
+router.delete('/deleteclass/:id', deleteclassroom)
 
 
 module.exports = router

@@ -98,6 +98,9 @@ const ViewClassHvc = () => {
         }
     }
 
+    const studentidPath = (Path) => {
+        Cookies.set('StudentPath', Path)
+    }
     return (
         <DashMasterLayout title="เพิ่มห้องเรียน ปวช.">
             {currenclass.length > 0 ? (
@@ -131,34 +134,36 @@ const ViewClassHvc = () => {
                                     />
                                 </div>
                                 {filteredClassrooms && filteredClassrooms.length > 0 ?
-                                    filteredClassrooms
-                                    .sort((a,b) => a.className.localeCompare(b.className))
-                                    .map((classroom) => (
-                                        <div key={classroom.id} className="my-5 flex justify-between items-center space-x-4 p-2 hover:bg-blue-50 transition-all duration-300 rounded-md border border-gray-300">
-                                            <Link to={`/a/${classroom.id}`} className="w-full">
-                                                <div className=" text-lg font-medium text-gray-800 hover:text-blue-500 py-2 px-4 rounded-md transition-colors duration-200">
-                                                    {classroom.className}
-                                                </div>
-                                            </Link>
-
-                                            <div className="flex items-center gap-x-4">
-
-                                                <Link to={`/editingClassRoom/${classroom.id}`}>
-                                                    <div className="p-2 bg-yellow-600 rounded-md text-white hover:bg-yellow-700 transition-colors duration-300">
-                                                        <RiEdit2Fill size={24} />
+                                    [...filteredClassrooms]
+                                        .sort((a, b) => a.className.localeCompare(b.className))
+                                        .map((classroom) => (
+                                            <div key={classroom.id} className="my-5 flex justify-between items-center space-x-4 p-2 hover:bg-blue-50 transition-all duration-300 rounded-md border border-gray-300">
+                                                <Link to={`/class/student/${classroom.id}`} className="w-full">
+                                                    <div className=" text-lg font-medium text-gray-800 hover:text-blue-500 py-2 px-4 rounded-md transition-colors duration-200"
+                                                        onClick={() => studentidPath(`/class/student/${classroom.id}`)}
+                                                    >
+                                                        {classroom.className}
                                                     </div>
                                                 </Link>
 
-                                                <button
-                                                    onClick={() => handleDeleteClick(classroom.id)}
-                                                    className="p-2 bg-red-600 rounded-md text-white hover:bg-red-700 transition-colors duration-300 cursor-pointer">
-                                                    <TiDelete size={24} />
-                                                </button>
+                                                <div className="flex items-center gap-x-4">
 
+                                                    <Link to={`/editingClassRoom/${classroom.id}`}>
+                                                        <div className="p-2 bg-yellow-600 rounded-md text-white hover:bg-yellow-700 transition-colors duration-300">
+                                                            <RiEdit2Fill size={24} />
+                                                        </div>
+                                                    </Link>
+
+                                                    <button
+                                                        onClick={() => handleDeleteClick(classroom.id)}
+                                                        className="p-2 bg-red-600 rounded-md text-white hover:bg-red-700 transition-colors duration-300 cursor-pointer">
+                                                        <TiDelete size={24} />
+                                                    </button>
+
+                                                </div>
                                             </div>
-                                        </div>
 
-                                    ))
+                                        ))
                                     : <div className="text-center mt-5">ไม่มีห้องเรียน</div>
                                 }
 
