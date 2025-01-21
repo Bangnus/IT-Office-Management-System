@@ -104,77 +104,81 @@ const ViewClassVC = () => {
   }
   return (
     <DashMasterLayout title="เพิ่มห้องเรียน ปวช.">
-      {currenclass.length > 0 ? (
-        currenclass.map((item, index) => (
-          <div
-            key={item.id}
-            className="cursor-pointer border border-gray-300 rounded-lg shadow-lg p-4 bg-white hover:shadow-xl transition duration-300 ease-in-out mb-4"
-            onClick={() => handleOpenMenu(index, item.id)}
-          >
-            <button className="text-[20px] font-medium text-black font-primaryRegula">
-              ห้องเรียน {item.classroom}
-            </button>
+      <div className="animate-fade-up animate-once animate-ease-in-out animate-normal animate-fill-forwards ">
 
-            {isOpen === index && (
-              <div
-                className="mt-4 animate-fade-down animate-once animate-ease-out animate-normal animate-fill-forwards"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <div className="space-y-3">
-                  <InputComponet
-                    label="เพิ่มห้องเรียน"
-                    color="blue"
-                    value={className}
-                    OnChange={setClassName}
-                  />
-                  <ButtonFullComponent
-                    lable="เพิ่มห้องเรียน"
-                    color="blue"
-                    func={handleCreateClass}
-                    isLoading={isLoading}
-                  />
-                </div>
-                {filteredClassrooms && filteredClassrooms.length > 0 ?
-                  [...filteredClassrooms]
-                    .sort((a, b) => a.className.localeCompare(b.className))
-                    .map((classroom) => (
-                      <div key={classroom.id} className="my-5 flex justify-between items-center space-x-4 p-2 hover:bg-blue-50 transition-all duration-300 rounded-md border border-gray-300">
-                        <Link to={`/class/student/${classroom.id}`} className="w-full">
-                          <div className=" text-lg font-medium text-gray-800 hover:text-blue-500 py-2 px-4 rounded-md transition-colors duration-200"
-                            onClick={() => studentidPath(`/class/student/${classroom.id}`)}
-                          >
-                            {classroom.className}
-                          </div>
-                        </Link>
+        {currenclass.length > 0 ? (
+          currenclass.map((item, index) => (
+            <div
+              key={item.id}
+              className="cursor-pointer border border-gray-300 rounded-lg shadow-lg p-4 bg-white hover:shadow-xl transition duration-300 ease-in-out mb-4"
+              onClick={() => handleOpenMenu(index, item.id)}
+            >
+              <button className="text-[20px] font-medium text-black font-primaryRegula">
+                ห้องเรียน {item.classroom}
+              </button>
 
-                        <div className="flex items-center gap-x-4">
-
-                          <Link to={`/editingClassRoom/${classroom.id}`}>
-                            <div className="p-2 bg-yellow-600 rounded-md text-white hover:bg-yellow-700 transition-colors duration-300">
-                              <RiEdit2Fill size={24} />
+              {isOpen === index && (
+                <div
+                  className="mt-4 animate-fade-down animate-once animate-ease-out animate-normal animate-fill-forwards"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="space-y-3">
+                    <InputComponet
+                      label="เพิ่มห้องเรียน"
+                      color="blue"
+                      value={className}
+                      OnChange={setClassName}
+                    />
+                    <ButtonFullComponent
+                      lable="เพิ่มห้องเรียน"
+                      color="blue"
+                      func={handleCreateClass}
+                      isLoading={isLoading}
+                    />
+                  </div>
+                  {filteredClassrooms && filteredClassrooms.length > 0 ?
+                    [...filteredClassrooms]
+                      .sort((a, b) => a.className.localeCompare(b.className))
+                      .map((classroom) => (
+                        <div key={classroom.id} className="my-5 flex justify-between items-center space-x-4 p-2 hover:bg-blue-50 transition-all duration-300 rounded-md border border-gray-300">
+                          <Link to={`/class/student/${classroom.id}`} className="w-full">
+                            <div className=" text-lg font-medium text-gray-800 hover:text-blue-500 py-2 px-4 rounded-md transition-colors duration-200"
+                              onClick={() => studentidPath(`/class/student/${classroom.id}`)}
+                            >
+                              {classroom.className}
                             </div>
                           </Link>
 
-                          <button
-                            onClick={() => handleDeleteClick(classroom.id)}
-                            className="p-2 bg-red-600 rounded-md text-white hover:bg-red-700 transition-colors duration-300 cursor-pointer">
-                            <TiDelete size={24} />
-                          </button>
+                          <div className="flex items-center gap-x-4">
 
+                            <Link to={`/editingClassRoom/${classroom.id}`}>
+                              <div className="p-2 bg-yellow-600 rounded-md text-white hover:bg-yellow-700 transition-colors duration-300">
+                                <RiEdit2Fill size={24} />
+                              </div>
+                            </Link>
+
+                            <button
+                              onClick={() => handleDeleteClick(classroom.id)}
+                              className="p-2 bg-red-600 rounded-md text-white hover:bg-red-700 transition-colors duration-300 cursor-pointer">
+                              <TiDelete size={24} />
+                            </button>
+
+                          </div>
                         </div>
-                      </div>
 
-                    ))
-                  : <div className="text-center mt-5">ไม่มีห้องเรียน</div>
-                }
+                      ))
+                    : <div className="text-center mt-5">ไม่มีห้องเรียน</div>
+                  }
 
-              </div>
-            )}
-          </div>
-        ))
-      ) : (
-        <div className="text-center text-gray-500 ">loading...</div>
-      )}
+                </div>
+              )}
+            </div>
+          ))
+        ) : (
+          <div className="text-center text-gray-500 ">loading...</div>
+        )}
+      </div>
+
       <ConfirmDeleteModal
         isOpen={isModelOpen}
         onClose={() => setIsModelOpen(false)}

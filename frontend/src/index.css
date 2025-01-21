@@ -16,6 +16,27 @@ to{
     animation: spin 40s linear infinite;
 }
 
+
+/* width */
+::-webkit-scrollbar {
+  @apply w-1
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  @apply bg-gray-300
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+ @apply bg-gray-400 rounded-lg
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-gray-600
+}
+
 body {
     @apply bg-gray-100;
   }

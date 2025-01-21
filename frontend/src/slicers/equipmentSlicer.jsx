@@ -44,6 +44,14 @@ export const deleteEquipment = createAsyncThunk('/equipment/deleteEquipment', as
     }
 })
 
+export const fetchEquipmentID = createAsyncThunk('/equipment/fetchEquipmentID', async (id) => {
+    try {
+        const res = await AxiosInstance.get(`/equipment/${id}`)
+        return { status: true, data: res.data.body }
+    } catch (error) {
+        return { status: false, error: error.message };
+    }
+})
 
 const equipmentSlice = createSlice({
     name: 'equipment',
@@ -75,6 +83,8 @@ const equipmentSlice = createSlice({
                         state.equipnent = action.payload.data !== undefined ? action.payload.data : [];
                     } else if (action.type.includes('deleteEquipment')) {
                         state.delete = action.payload.data !== undefined ? action.payload.data : [];
+                    } else if (action.type.includes('fetchEquipmentID')) {
+                        state.equipnent = action.payload.data !== undefined ? action.payload.data : [];
                     }
                 }
             )

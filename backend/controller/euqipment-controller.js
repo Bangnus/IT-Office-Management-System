@@ -44,7 +44,7 @@ exports.editEquipment = async (req, res) => {
                 message: "equipment not found"
             })
         }
-
+        // let image = existingequipment.image;
         if (existingequipment.image) {
             const oldImage = existingequipment.image;
             if (fs.existsSync(oldImage)) {

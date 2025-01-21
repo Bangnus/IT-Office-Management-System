@@ -364,7 +364,7 @@ const ViewClassStudent = () => {
                         <div className="p-5 space-y-5">
                             <label
                                 htmlFor="file-upload"
-                                className="flex items-center justify-center bg-gray-300  border-[3.5px] border-dashed border-gray-400"
+                                className="flex items-center justify-center bg-gray-200  border  border-gray-300"
                             >
                                 {preview ? (
                                     <img

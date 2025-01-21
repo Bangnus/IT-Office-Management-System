@@ -44,12 +44,6 @@ const AvatarComponent = ({ AvatarName, Cusname }) => {
               </button>
             </MenuHandler>
             <MenuList>
-              <MenuItem>
-                <div className='flex items-center gap-x-2'>
-                  <MdOutlineAccountCircle />
-                  <span>Account Settings</span>
-                </div>
-              </MenuItem>
               <MenuItem onClick={() => auth.SignoutAction()}>
                 <div className='flex items-center gap-x-2'>
                   <TbLogout2 />
