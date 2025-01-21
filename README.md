@@ -1,6 +1,6 @@
 # IT Office Management System
 
-# In this project is a Content Management System 
+# In this project is a Management System 
 
 Front-End
 
