@@ -36,7 +36,7 @@ export const fetchClassroom = createAsyncThunk('/classroom/fetchClassroom', asyn
 
 export const deleteClassroom = createAsyncThunk('/classroom/deleteClassroom', async (id) => {
     try {
-        const res = await AxiosInstance.delete(`/deleteTeacher/${id}`)
+        const res = await AxiosInstance.delete(`/deleteclassroom/${id}`)
         return { status: true, data: res.data.body }
     } catch (error) {
         return { status: false, error: error.message };

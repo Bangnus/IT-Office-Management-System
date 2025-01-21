@@ -76,6 +76,7 @@ const Viewclassteacher = () => {
       setPreview(URL.createObjectURL(file))
     }
   };
+  
   //รับค่าจากไอดีของอาจารย์
   const handleOpenModelDelete = (id) => {
     setTacherID(id)
@@ -146,11 +147,11 @@ const Viewclassteacher = () => {
                     <td className="px-5 py-3 text-gray-800 text-sm">{data.position}</td>
                     <td className="px-5 py-3 text-center flex items-center justify-center gap-x-2 ">
                       <Link to={`/editTeachert/${data.id}`}>
-                        <div className="p-2 bg-yellow-600 rounded-md text-white hover:bg-yellow-700 transition-colors duration-300">
+                        <div className="p-2 bg-yellow-600 rounded-md text-white hover:bg-yellow-700 transition-colors duration-300 shadow-md">
                           <RiEdit2Fill size={20} />
                         </div>
                       </Link>
-                      <button className="p-2 bg-red-600 rounded-md text-white hover:bg-red-700 transition-colors duration-300 cursor-pointer"
+                      <button className="p-2 bg-red-600 rounded-md text-white hover:bg-red-700 transition-colors duration-300 cursor-pointer shadow-md"
                         onClick={() => handleOpenModelDelete(data.id)}
                       >
                         <TiDelete size={20} />
@@ -201,7 +202,7 @@ const Viewclassteacher = () => {
               </div>
               <label
                 htmlFor="file-upload"
-                className='flex items-center justify-center bg-gray-300  border-[3.5px] border-dashed border-gray-400'
+                className='cursor-pointer flex items-center justify-center bg-gray-200  border border border-gray-300 p-2 rounded-lg '
               >
                 {preview ? (
                   <img
@@ -210,7 +211,7 @@ const Viewclassteacher = () => {
                     className='w-full oblect-cover rounded-lg'
                   />
                 ) : (
-                  <BiImageAdd size={40} />
+                  <BiImageAdd size={100} />
                 )}
                 <input
                   type="file"

@@ -15,6 +15,8 @@ import ViewManageClass from "./pages/content-dashboard/content-class/group-class
 import ViewClassStudent from "./pages/content-dashboard/content-class/content-student/view-class-student";
 import EditStudent from "./pages/content-dashboard/content-class/content-editstudent/editstudent";
 import EditEeacher from "./pages/content-dashboard/content-class/content-editteacher/editteacher";
+import ViewManageEquipment from "./pages/content-dashboard/content-class/group-class/view-manageequipment";
+import EditEquipment from "./pages/content-dashboard/content-class/content-editequipment/editequipment";
 const App = () => {
   return (
     <AuthProvider>
@@ -32,10 +34,12 @@ const App = () => {
           <Route path="/home/Higher-Vocational-Certificate" element={<ViewClassHvc />} />
           <Route path="/home/Bachelors-Degree" element={<ViewClassBa />} />
           <Route path="/home/manage-classroom" element={<ViewManageClass />} />
+          <Route path="/home/manage-equipment" element={<ViewManageEquipment />} />
           <Route path="/class/student/:id" element={<ViewClassStudent />} />
           <Route path="/editingClassRoom/:id" element={<Editclassroom />} />
           <Route path="/editStudent/:id" element={<EditStudent />} />
           <Route path="/editTeachert/:id" element={<EditEeacher />} />
+          <Route path="/editEquipment/:id" element={<EditEquipment />} />
         </Route>
       </Routes>
     </AuthProvider>

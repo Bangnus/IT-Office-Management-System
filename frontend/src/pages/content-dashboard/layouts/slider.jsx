@@ -9,6 +9,14 @@ import { useEffect, useState } from "react";
 import { fetchclassVC } from "../../../slicers/classSlicer";
 import { useSelector, useDispatch } from "react-redux";
 import { IoIosArrowForward, IoIosArrowDown } from "react-icons/io";
+import { FaChalkboardTeacher } from "react-icons/fa";
+import { PiStudentFill } from "react-icons/pi";
+import { HiComputerDesktop } from "react-icons/hi2";
+import { RiHomeGearFill } from "react-icons/ri";
+import { MdDashboard } from "react-icons/md";
+import { FaUsersGear } from "react-icons/fa6";
+import { FaUserGear } from "react-icons/fa6";
+import { BsBuildingFillGear } from "react-icons/bs";
 
 const SliderComponent = () => {
     const dispatch = useDispatch();
@@ -37,17 +45,17 @@ const SliderComponent = () => {
         {
             label: 'หน้าหลัก',
             path: '/dashboard',
-            icon: <RxDashboard />,
+            icon: <MdDashboard />,
         },
         {
             label: 'ข้อมูลอาจารย์',
             path: '/home/teacher',
-            icon: <LuPackage />,
+            icon: <FaUserGear  />,
         },
         {
             label: 'ข้อมูลนักเรียน ปวช',
             path: '/home/Vocational-Certificate',
-            icon: <PiShoppingBagOpenBold />,
+            icon: <FaUsersGear  />,
             // subMenu: fetchClass?.filter(item => item.classroom.includes("ปวช"))?.map(item => ({
             //     label: item.classroom,
             //     path: `/class/${item.id}`,
@@ -56,7 +64,7 @@ const SliderComponent = () => {
         {
             label: 'ข้อมูลนักเรียน ปวส',
             path: '/home/Higher-Vocational-Certificate',
-            icon: <PiShoppingBagOpenBold />,
+            icon: <FaUsersGear  />,
             // subMenu: fetchClass?.filter(item => item.classroom.includes("ปวส"))?.map(item => ({
             //     label: item.classroom,
             //     path: `/class/${item.id}`,
@@ -65,7 +73,7 @@ const SliderComponent = () => {
         {
             label: 'ข้อมูลนักเรียน ป.ตรี',
             path: '/home/Bachelors-Degree',
-            icon: <PiShoppingBagOpenBold />,
+            icon: <FaUsersGear  />,
             // subMenu: fetchClass?.filter(item => item.classroom.includes("ป.ตรี"))?.map(item => ({
             //     label: item.classroom,
             //     path: `/class/${item.id}`,
@@ -74,7 +82,12 @@ const SliderComponent = () => {
         {
             label: 'จัดการห้องเรียน',
             path: '/home/manage-classroom',
-            icon: <PiShoppingBagOpenBold />,
+            icon: <BsBuildingFillGear  />,
+        },
+        {
+            label: 'จัดการอุปกรณ์',
+            path: '/home/manage-equipment',
+            icon: <HiComputerDesktop />,
         },
     ];
 

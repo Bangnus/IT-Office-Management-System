@@ -53,7 +53,7 @@ const EditEeacher = () => {
                 setPosition('')
                 setTeacherImage(null)
 
-                dispatch(FetchTeacherID(id));
+                await dispatch(FetchTeacherID(id));
 
                 navigate(menupath || '/dashboard');
             } else {

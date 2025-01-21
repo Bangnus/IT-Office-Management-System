@@ -5,22 +5,22 @@ import { ToastContainer } from 'react-toastify';
 
 import { useEffect } from 'react';
 
-const MasterLayout = ({children, Navlight, title}) => {
+const MasterLayout = ({ children, Navlight, title }) => {
 
     useEffect(() => {
-        document.title = `${ title === undefined ? 'BOOKING OASIS HOME Official' : `${title} | Booking Oasis Home`}`;
+        document.title = `${title === undefined ? 'IT OFFICE MANNENTMENT SYSTEM' : `${title} | IT OFFICE MANNENTMENT SYSTEM`}`;
     }, [title]);
 
-    return(
+    return (
         <>
-        <div className='duration-200 font-primaryRegular'>
-            {/* <Navbar lightNav={Navlight} /> */}
-            <main>
-                {children}
-            </main>
-            {/* <Footer /> */}
-            <ToastContainer />
-        </div>
+            <div className='duration-200 font-primaryRegular'>
+                {/* <Navbar lightNav={Navlight} /> */}
+                <main>
+                    {children}
+                </main>
+                {/* <Footer /> */}
+                <ToastContainer />
+            </div>
         </>
     );
 };
