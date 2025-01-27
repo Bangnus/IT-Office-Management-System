@@ -11,6 +11,7 @@ import { BiImageAdd } from "react-icons/bi";
 import InputComponet from '../../../../components/content-input/input-full';
 import { ToastifyError, ToastifySuccess, ToastifyWarning } from '../../../../components/content-alert/toastify';
 import ConfirmDeleteModal from '../../../../components/content-alert/ConfirmDeleteModal';
+import { MdManageAccounts } from "react-icons/md";
 
 const Viewclassteacher = () => {
   const dispatch = useDispatch()
@@ -18,10 +19,11 @@ const Viewclassteacher = () => {
   const [position, setPosition] = useState('');
   const [TeacherImage, setTeacherImage] = useState(null);
   const [teacherID, setTacherID] = useState('')
-
+  console.log(TeacherImage)
   const [isOpenModelDelete, setIsOpenModelDelete] = useState(false)
   const [isOpenModel, setIsOpenModel] = useState(false)
   const [preview, setPreview] = useState(null)
+  const [zoomImage, setZoomImage] = useState(false)
   // console.log(teacherID)
 
 
@@ -76,7 +78,7 @@ const Viewclassteacher = () => {
       setPreview(URL.createObjectURL(file))
     }
   };
-  
+
   //รับค่าจากไอดีของอาจารย์
   const handleOpenModelDelete = (id) => {
     setTacherID(id)
@@ -102,7 +104,11 @@ const Viewclassteacher = () => {
     }
 
   }
-
+  const ZoomImage = (id, image) => {
+    setTacherID(id)
+    setTeacherImage(image)
+    setZoomImage(true)
+  }
   return (
     <DashMasterLayout title={"อาจารย์"}>
       <div className="flex items-center justify-end mb-2">
@@ -140,12 +146,18 @@ const Viewclassteacher = () => {
                       <img
                         src={`http://localhost:5000/${data.TeacherImage}`}
                         alt="Teacher"
-                        className="w-16 h-16 object-cover border border-gray-200"
+                        className="w-16 h-16 object-cover border border-gray-200 cursor-pointer"
+                        onClick={() => ZoomImage(data.id, data.TeacherImage)}
                       />
                     </td>
                     <td className="py-3 px-5 text-gray-800 text-sm">{data.fullName}</td>
                     <td className="px-5 py-3 text-gray-800 text-sm">{data.position}</td>
                     <td className="px-5 py-3 text-center flex items-center justify-center gap-x-2 ">
+                      <Link to={`/LeaveTeacher/${data.id}`}>
+                        <div className="p-2 bg-cyan-600 rounded-md text-white hover:bg-cyan-700 transition-colors duration-300 shadow-md">
+                          <MdManageAccounts size={20} />
+                        </div>
+                      </Link>
                       <Link to={`/editTeachert/${data.id}`}>
                         <div className="p-2 bg-yellow-600 rounded-md text-white hover:bg-yellow-700 transition-colors duration-300 shadow-md">
                           <RiEdit2Fill size={20} />
@@ -230,6 +242,24 @@ const Viewclassteacher = () => {
           </div>
         </div>
       )}
+
+      {zoomImage === true && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50"
+          onClick={() => setZoomImage(false)}
+        >
+          <div
+            className="bg-white rounded-lg p-1 w-full  max-w-[40rem] sm:w-96 md:w-1/3 shadow-lg animate-jump-in animate-once animate-ease-out animate-normal animate-fill-forwards"
+            onClick={(e) => e.stopPropagation()} // ป้องกันคลิกปิดเมื่อคลิกภายใน modal
+          >
+            <div className="flex flex-col gap-4 ">
+              <img src={`http://localhost:5000/${TeacherImage}`} alt="" />
+            </div>
+          </div>
+        </div>
+      )}
+
+
       <ConfirmDeleteModal
         isOpen={isOpenModelDelete}
         onClose={() => setIsOpenModelDelete(false)}

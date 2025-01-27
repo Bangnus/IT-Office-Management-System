@@ -27,7 +27,7 @@ const DashMasterLayout = ({ children, title, path }) => {
     }
 
     useEffect(() => {
-        document.title = `${title === undefined ? 'BOOKING OASIS HOME Official' : `${title} | Booking Oasis Home`}`;
+        document.title = `${title === undefined ? 'IT OFFICE MANNENTMENT SYSTEM' : `${title} | IT OFFICE MANNENTMENT SYSTEM`}`;
         Cookies.set('lastPath', locatpage.pathname);
     }, [title, locatpage]);
 
@@ -78,7 +78,7 @@ const DashMasterLayout = ({ children, title, path }) => {
                                 <div className='my-2'>
                                     <span className='bg-blue-200 py-[8px] px-[20px] rounded-md'>{title}</span>
                                 </div>
-                              
+
                             </div>
                             <div className='w-full h-[82vh] no-scrollbar overflow-y-auto'>
                                 {children}

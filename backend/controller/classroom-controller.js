@@ -26,7 +26,7 @@ exports.addclassroom = async (req, res) => {
 exports.Editlassroom = async (req, res) => {
     try {
         const { id } = req.params
-        const { roomID, roomname } = req.body;
+        const { roomID, roomname,  } = req.body;
 
         const classroomdata = await prisma.classroom.update({
             where: {
@@ -34,7 +34,7 @@ exports.Editlassroom = async (req, res) => {
             },
             data: {
                 roomID,
-                roomname
+                roomname,
             }
         })
         return res.status(200).json({
@@ -88,7 +88,7 @@ exports.fetchclassroom = async (req, res) => {
 }
 exports.fetchclassroomID = async (req, res) => {
     try {
-        const {id} = req.params
+        const { id } = req.params
 
         const fetchdata = await prisma.classroom.findMany({
             where: {

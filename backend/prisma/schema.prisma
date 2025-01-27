@@ -42,6 +42,7 @@ model vc {
 model classroomNumber {
   id        Int       @id @default(autoincrement())
   className String?
+  advisor   String?
   vc        vc?       @relation(fields: [vcID], references: [id])
   vcID      Int?
   vcstudent student[]
@@ -57,10 +58,11 @@ model images {
 
 //Teacher
 model Teacher {
-  id Int @id @default(autoincrement())
-  fullName String?
-  position String?
+  id           Int     @id @default(autoincrement())
+  fullName     String?
+  position     String?
   TeacherImage String?
+  leave        leave[]
 }
 
 // //ตารางห้องเรียน
@@ -72,9 +74,16 @@ model classroom {
 
 //อุปกรณ์
 model equipment {
-  id Int @id @default(autoincrement())
-  name String?
+  id     Int     @id @default(autoincrement())
+  name   String?
   number String?
-  image String?
+  image  String?
+}
 
+model leave {
+  id          Int      @id @default(autoincrement())
+  description String?
+  date        String?
+  teacherID   Int?
+  Teacher     Teacher? @relation(fields: [teacherID], references: [id])
 }
