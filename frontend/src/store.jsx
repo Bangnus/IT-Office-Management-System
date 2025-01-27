@@ -6,6 +6,7 @@ import imageSlicer from "./slicers/imageSlicer";
 import teacherSlicer from './slicers/teacherSlicer'
 import classroomSlicer from "./slicers/classroomSlicer";
 import equipmentSlicer from "./slicers/equipmentSlicer";
+import leaveteacherSlice from './slicers/leaveteacherSlicer'
 export const store = configureStore({
     reducer: {
         auth: authenticateSlice,
@@ -15,5 +16,6 @@ export const store = configureStore({
         teacher: teacherSlicer,
         classroom: classroomSlicer,
         equipment: equipmentSlicer,
+        leave: leaveteacherSlice,
     }
 });

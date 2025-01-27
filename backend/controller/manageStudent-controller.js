@@ -51,7 +51,8 @@ exports.editstudent = async (req, res) => {
             data: {
                 studentID,
                 firstname,
-                lastname
+                lastname,
+                
             }
         })
         return res.status(200).json({

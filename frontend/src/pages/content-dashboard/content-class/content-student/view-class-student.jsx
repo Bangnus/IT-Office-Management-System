@@ -29,6 +29,7 @@ const ViewClassStudent = () => {
     const [classRoom, setClassRoom] = useState('');
     const [isOpenModelDelete, setIsOpenModelDelete] = useState(false)
     const [RoomID, setRoomID] = useState('')
+    const [advisor, setAdvisor] = useState('')
     //Image
     const [upImage, setUpImage] = useState(null)
     const [image, setImage] = useState(null);
@@ -38,7 +39,7 @@ const ViewClassStudent = () => {
     const StudentData = useSelector((state) => state.student.student); // ดึงข้อมูลนักเรียนจาก Redux
     const FetchImage = useSelector((state) => state.image.image)
     console.log(StudentData)
-    console.log(classRoom)
+    // console.log(classRoom)
     // console.log("Image", image)
     // console.log("preview", preview)
     useEffect(() => {
@@ -48,6 +49,13 @@ const ViewClassStudent = () => {
             setClassName(className);
         } else (
             setClassName('')
+        )
+        if (StudentData?.length > 0) {
+            // ดึง className ของนักเรียนคนแรก
+            const advisor = StudentData[0]?.classroomNumber?.advisor || "ไม่มีข้อมูล";
+            setAdvisor(advisor);
+        } else (
+            setAdvisor('')
         )
     }, [StudentData]);
 
@@ -197,7 +205,10 @@ const ViewClassStudent = () => {
 
                     </div>
                     <div className="flex  py-2 items-center justify-between">
-                        <h1 className='text-lg font-semibold p-2'>ข้อมูลนักเรียน{classRoom} {className}</h1>
+                        <div className="flex items-center">
+                            <h1 className='text-lg font-semibold p-2'>ข้อมูลนักเรียน:{classRoom} {className}</h1>
+                            <span className='text-lg font-semibold p-2'>อาจารย์ที่ปรึกษา:{advisor}</span>
+                        </div>
                         <div className="flex items-center gap-x-2">
                             {/* <label
                                 htmlFor="file-upload"

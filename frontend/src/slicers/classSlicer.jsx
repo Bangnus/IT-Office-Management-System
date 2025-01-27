@@ -16,7 +16,8 @@ export const createClassRoom = createAsyncThunk('class/createClassRoom', async (
     try {
         const res = await AxiosInstance.post('/addclass', {
             className: data.className,
-            vcID: data.vcID
+            vcID: data.vcID,
+            advisor: data.advisor
         });
         return { status: true, data: res.data.body };
     } catch (error) {
@@ -33,9 +34,12 @@ export const fetchClassRoom = createAsyncThunk('class/fetchClassRoom', async () 
     }
 })
 
-export const editclassroom = createAsyncThunk('class/editclassroom', async ({ id, className }) => {
+export const editclassroom = createAsyncThunk('class/editclassroom', async ({ id, className, advisor }) => {
     try {
-        const res = await AxiosInstance.put(`/editclass/${id}`, { className });
+        const res = await AxiosInstance.put(`/editclass/${id}`, {
+            className,
+            advisor
+        });
         return { status: true, data: res.data.body };
     } catch (error) {
         return { status: false, error: error.message };

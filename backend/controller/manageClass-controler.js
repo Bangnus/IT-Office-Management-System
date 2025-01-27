@@ -44,12 +44,13 @@ exports.getvc = async (req, res) => {
 
 exports.addclassroom = async (req, res) => {
     try {
-        const { className, vcID } = req.body;
+        const { className, vcID, advisor } = req.body;
 
         const addclass = await prisma.classroomNumber.create({
             data: {
                 className,
                 vcID,
+                advisor,
             }
         })
         return res.status(299).json({
@@ -67,7 +68,7 @@ exports.addclassroom = async (req, res) => {
 exports.editclassroom = async (req, res) => {
     try {
         const { id } = req.params;
-        const { className } = req.body;
+        const { className, advisor } = req.body;
 
 
         const editclassroom = await prisma.classroomNumber.update({
@@ -75,7 +76,8 @@ exports.editclassroom = async (req, res) => {
                 id: parseInt(id),
             },
             data: {
-                className
+                className,
+                advisor
             }
         })
         return res.status(200).json({

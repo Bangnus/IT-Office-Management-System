@@ -17,6 +17,7 @@ import EditStudent from "./pages/content-dashboard/content-class/content-editstu
 import EditEeacher from "./pages/content-dashboard/content-class/content-editteacher/editteacher";
 import ViewManageEquipment from "./pages/content-dashboard/content-class/group-class/view-manageequipment";
 import EditEquipment from "./pages/content-dashboard/content-class/content-editequipment/editequipment";
+import LeaveTeacher from "./pages/content-dashboard/content-class/content-Leave/leave-teacher";
 const App = () => {
   return (
     <AuthProvider>
@@ -40,6 +41,7 @@ const App = () => {
           <Route path="/editStudent/:id" element={<EditStudent />} />
           <Route path="/editTeachert/:id" element={<EditEeacher />} />
           <Route path="/editEquipment/:id" element={<EditEquipment />} />
+          <Route path="/LeaveTeacher/:id" element={<LeaveTeacher />} />
         </Route>
       </Routes>
     </AuthProvider>

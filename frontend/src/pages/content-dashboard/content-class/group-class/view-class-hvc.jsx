@@ -19,6 +19,7 @@ const ViewClassHvc = () => {
     const [isModelOpen, setIsModelOpen] = useState(false)
     const [className, setClassName] = useState('');
     const [vcID, setVcID] = useState('');
+    const [advisor, setAdvisor] = useState('')
     const [roomID, setRoomID] = useState('')
     // Selectors
     const fetchclass = useSelector((state) => state.class.class);
@@ -36,13 +37,14 @@ const ViewClassHvc = () => {
             setIsLoading(true);
             if (!className || !vcID) throw new Error('All fields are required');
 
-            const data = { className, vcID };
+            const data = { className, vcID, advisor };
             const response = await dispatch(createClassRoom(data));
 
             if (response.payload?.status === true) {
                 ToastifySuccess({ lable: 'สร้างห้องสำเร็จ' });
                 setClassName('');
                 setVcID('');
+                setAdvisor('');
                 setIsOpen(null);
                 await dispatch(fetchclassVC());
                 await dispatch(fetchClassRoom()); // Refresh classrooms
@@ -122,12 +124,20 @@ const ViewClassHvc = () => {
                                     onClick={(e) => e.stopPropagation()}
                                 >
                                     <div className="space-y-3">
-                                        <InputComponet
-                                            label="เพิ่มห้องเรียน"
-                                            color="blue"
-                                            value={className}
-                                            OnChange={setClassName}
-                                        />
+                                        <div className="flex items-center gap-x-2">
+                                            <InputComponet
+                                                label="เพิ่มห้องเรียน"
+                                                color="blue"
+                                                value={className}
+                                                OnChange={setClassName}
+                                            />
+                                            <InputComponet
+                                                label="เพิ่มอาจารย์ที่ปรึกษา"
+                                                color="blue"
+                                                value={advisor}
+                                                OnChange={setAdvisor}
+                                            />
+                                        </div>
                                         <ButtonFullComponent
                                             lable="เพิ่มห้องเรียน"
                                             color="blue"

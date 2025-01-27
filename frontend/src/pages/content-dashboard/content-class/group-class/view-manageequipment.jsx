@@ -19,6 +19,7 @@ const ViewManageEquipment = () => {
     const [image, setImage] = useState(null)
     const [preview, setPreview] = useState(null)
     const [id, setId] = useState('')
+    const [zoomImage, setZoomImage] = useState(false)
     const [isOpenModelDelete, setIsOpemModelDelete] = useState(false)
     const EquipmentData = useSelector((state) => state.equipment.equipnent)
     console.log(EquipmentData)
@@ -88,6 +89,12 @@ const ViewManageEquipment = () => {
             ToastifyError({ lable: "เกิดข้อผิดพลาด" })
         }
     }
+
+    const ZoomImage = (id, image) => {
+        setId(id)
+        setImage(image)
+        setZoomImage(true)
+    }
     return (
         <DashMasterLayout title={"จัดการอุปกรณ์"}>
             <div className="flex items-center justify-between p-4 bg-white rounded-lg animate-fade animate-once animate-ease-linear animate-normal animate-fill-forwards">
@@ -121,7 +128,12 @@ const ViewManageEquipment = () => {
                                             } hover:bg-gray-100`}
                                     >
                                         <td className='px-5 py-3 text-gray-800 text-sm'>{index + 1}</td>
-                                        <td className='text-center py-3 '><img src={`http://localhost:5000/${data.image}`} alt="image" className='w-16 h-16 object-cover' /></td>
+                                        <td className='text-center py-3 '>
+                                            <img src={`http://localhost:5000/${data.image}`} alt="image"
+                                                className='w-16 h-16 object-cover'
+                                                onClick={() => ZoomImage(data.id, data.image)}
+                                            />
+                                        </td>
                                         <td className='px-5 py-3 text-gray-800 text-sm'>{data.name}</td>
                                         <td className='px-5 py-3 text-gray-800 text-sm'>{data.number}</td>
                                         <td className='px-5 py-3 text-center flex items-center justify-center gap-x-2'>
@@ -208,6 +220,25 @@ const ViewManageEquipment = () => {
                     </div>
                 </div>
             )}
+
+            {zoomImage === true && (
+                <div
+                    className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50"
+                    onClick={() => setZoomImage(false)}
+                >
+                    <div
+                        className="bg-white rounded-lg p-1 w-full  max-w-[40rem] sm:w-96 md:w-1/3 shadow-lg animate-jump-in animate-once animate-ease-out animate-normal animate-fill-forwards"
+                        onClick={(e) => e.stopPropagation()} // ป้องกันคลิกปิดเมื่อคลิกภายใน modal
+                    >
+                        <div className="flex flex-col gap-4 ">
+                            <img src={`http://localhost:5000/${image}`} alt=""
+                                className='w-full h-auto max-h-[30rem] object-cover'
+                            />
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <ConfirmDeleteModal
                 isOpen={isOpenModelDelete}
                 onClose={() => setIsOpemModelDelete(false)}
