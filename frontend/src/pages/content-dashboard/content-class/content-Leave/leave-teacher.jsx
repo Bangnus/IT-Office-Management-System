@@ -1,18 +1,28 @@
 import React, { useEffect, useState } from 'react'
 import DashMasterLayout from '../../layouts/master'
-import { useParams } from 'react-router-dom'
+import { useParams, Link } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
-import { fetchleaveTeacherID, CreateLeaveTeacher } from '../../../../slicers/leaveteacherSlicer'
+import { fetchleaveTeacherID, CreateLeaveTeacher, deleteLeave, editLeave } from '../../../../slicers/leaveteacherSlicer'
 import InputComponet from '../../../../components/content-input/input-full'
 import ButtonFullComponent from '../../../../components/content-buttons/full-button'
 import { ToastifyError, ToastifySuccess, ToastifyWarning } from '../../../../components/content-alert/toastify'
+import { RiEdit2Fill } from "react-icons/ri";
+import { TiDelete } from "react-icons/ti";
+import ConfirmDeleteModal from '../../../../components/content-alert/ConfirmDeleteModal'
+
+
+
 const LeaveTeacher = () => {
     const dispatch = useDispatch()
     const { id } = useParams()
     const [description, setDescription] = useState('')
     const [date, setDate] = useState('')
     const [teacherID, setTeacherID] = useState(id)
+    const [leaveID, setLeaveID] = useState('')
+    console.log(leaveID)
     const [isOpenModel, setIsOpenModel] = useState(false)
+    const [isOpenModelDelete, setIsOpenModelDelete] = useState(false)
+
 
     const fetchleaveData = useSelector((state) => state.leave.leave)
     console.log(fetchleaveData)
@@ -43,7 +53,31 @@ const LeaveTeacher = () => {
                 setIsOpenModel(false)
                 await dispatch(fetchleaveTeacherID(id))
             } else {
-                ToastifyWarning({ lable: "เพิ่มข้อมูลไม่สำเร็จ" })
+                ToastifyWarning({ lable: "เพิ่มข้อมูลไม่สำเร็จ" });
+            }
+        } catch (error) {
+            ToastifyError({ lable: "เกิดข้อผิดพลาด" })
+        }
+    }
+
+    const handleOpenModelDelete = (id) => {
+        setLeaveID(id)
+        setIsOpenModelDelete(true)
+    }
+    const handleDelete = async () => {
+        try {
+            if (!leaveID) {
+                throw new Error('ไม่พบ ID ที่จ้องการลบ')
+            }
+            const response = await dispatch(deleteLeave(leaveID))
+
+            if (response.payload.status === true) {
+                ToastifySuccess({ lable: "ลบข้อมูลสำเร็จ" })
+                setLeaveID('')
+                setIsOpenModelDelete(false)
+                await dispatch(fetchleaveTeacherID(id))
+            } else {
+                ToastifyWarning({ lable: "ลบข้อมูลไม่สำเร็จ" });
             }
         } catch (error) {
             ToastifyError({ lable: "เกิดข้อผิดพลาด" })
@@ -67,6 +101,7 @@ const LeaveTeacher = () => {
                                 <th className="px-5 py-3 font-semibold text-left  w-1/12">#</th>
                                 <th className="px-5 py-3 font-semibold text-left  w-7/12">เหตุผลในการลา</th>
                                 <th className="px-5 py-3 font-semibold text-left  w-4/12">วันที่ขอลา</th>
+                                <th className="px-5 py-3 font-semibold text-center  w-4/12">จัดการ</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -76,6 +111,18 @@ const LeaveTeacher = () => {
                                         <td className="px-5 py-2 text-left ">{index + 1}</td>
                                         <td className="px-5 py-2 text-left ">{data.description}</td>
                                         <td className="px-5 py-2 text-left ">{data.date}</td>
+                                        <td className="px-5 py-2 text-left flex items-center justify-center gap-x-2 ">
+                                            <Link to={`/editLeave/${data.id}`}>
+                                                <div className="p-2 bg-cyan-600 rounded-md text-white hover:bg-cyan-700 transition-colors duration-300 shadow-md">
+                                                    <RiEdit2Fill size={20} />
+                                                </div>
+                                            </Link>
+                                            <button className="p-2 bg-red-600 rounded-md text-white hover:bg-red-700 transition-colors duration-300 cursor-pointer shadow-md"
+                                                onClick={() => handleOpenModelDelete(data.id)}
+                                            >
+                                                <TiDelete size={20} />
+                                            </button>
+                                        </td>
                                     </tr>
                                 ))
                             ) : (
@@ -129,6 +176,11 @@ const LeaveTeacher = () => {
                     </div>
                 </div>
             )}
+            <ConfirmDeleteModal
+                isOpen={isOpenModelDelete}
+                onClose={() => setIsOpenModelDelete(false)}
+                onConfirm={handleDelete}
+            />
         </DashMasterLayout>
     )
 }
