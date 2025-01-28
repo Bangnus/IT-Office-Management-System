@@ -214,13 +214,13 @@ const Viewclassteacher = () => {
               </div>
               <label
                 htmlFor="file-upload"
-                className='cursor-pointer flex items-center justify-center bg-gray-200  border border border-gray-300 p-2 rounded-lg '
+                className='cursor-pointer flex items-center justify-center bg-gray-200   border border-gray-300 p-2 rounded-lg '
               >
                 {preview ? (
                   <img
                     src={preview}
                     alt='Image'
-                    className='w-full oblect-cover rounded-lg'
+                    className='w-full object-cover rounded-lg'
                   />
                 ) : (
                   <BiImageAdd size={100} />

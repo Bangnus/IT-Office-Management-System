@@ -85,7 +85,7 @@ const LeaveTeacher = () => {
     }
     return (
         <DashMasterLayout title={"ประวัติการลา"}>
-            <div className="animate-fade-up animate-once animate-ease-in animate-normal animate-fill-forwards animate-fade animate-once animate-ease-in animate-normal animate-fill-forwards">
+            <div className="">
                 <div className="">
                     <button
                         onClick={() => setIsOpenModel(true)}

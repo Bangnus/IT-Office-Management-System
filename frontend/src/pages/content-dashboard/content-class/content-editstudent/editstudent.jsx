@@ -70,7 +70,7 @@ const EditStudent = () => {
     }
     return (
         <DashMasterLayout title={'เเก้ไขข้อมูล'}>
-            <div className="p-5 space-y-4 bg-white p-7 rounded-lg shadow-md">
+            <div className="p-5 space-y-4 bg-white  rounded-lg shadow-md">
                 <InputComponet
                     label={"เเก้ไขรหัสนักเรียน"}
                     color={"blue"}
