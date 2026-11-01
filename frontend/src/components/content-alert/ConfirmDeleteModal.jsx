@@ -1,34 +1,55 @@
-import React from 'react';
+import { useEffect } from 'react';
+import PropTypes from 'prop-types';
+import { LuTrash2 } from 'react-icons/lu';
 
-const ConfirmDeleteModal = ({ isOpen, onClose, onConfirm }) => {
+/** Delete confirmation dialog. Closes on backdrop click and Escape. */
+const ConfirmDeleteModal = ({ isOpen, onClose, onConfirm, title = 'ยืนยันการลบข้อมูล', message = 'ลบแล้วจะกู้คืนไม่ได้ ต้องการลบข้อมูลนี้ใช่ไหม?' }) => {
+    useEffect(() => {
+        if (!isOpen) return;
+        const onKey = (e) => e.key === 'Escape' && onClose();
+        document.addEventListener('keydown', onKey);
+        return () => document.removeEventListener('keydown', onKey);
+    }, [isOpen, onClose]);
+
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50 "
-            onClick={onClose}
-        >
-            <div 
-            onClick={(e) => e.stopPropagation() }
-            className="bg-white rounded-lg p-5 w-1/3 shadow-lg  animate-jump-in animate-once animate-ease-out animate-normal animate-fill-forwards">
-                <h2 className="text-lg font-bold mb-4 xs:text-[12px] ">ยืนยันการลบข้อมูล</h2>
-                <p className="mb-4 xs:text-[12px]">คุณแน่ใจหรือว่าต้องการลบข้อมูลนี้?</p>
-                <div className="flex justify-end">
-                    <button
-                        onClick={onClose}
-                        className="mr-2 bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 xs:px-1 xs:py-0 xs:text-[10px]"
-                    >
+        <div className="modal-backdrop animate-fade animate-duration-150" onClick={onClose}>
+            <div
+                role="alertdialog"
+                aria-modal="true"
+                aria-labelledby="confirm-delete-title"
+                onClick={(e) => e.stopPropagation()}
+                className="modal-panel max-w-sm animate-fade-up animate-duration-200 animate-ease-out"
+            >
+                <div className="flex gap-4">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-50 text-red-600">
+                        <LuTrash2 className="h-5 w-5" />
+                    </span>
+                    <div className="min-w-0">
+                        <h2 id="confirm-delete-title" className="modal-title">{title}</h2>
+                        <p className="mt-1 text-sm text-ink-500">{message}</p>
+                    </div>
+                </div>
+                <div className="mt-6 flex justify-end gap-2">
+                    <button type="button" onClick={onClose} className="btn-secondary" autoFocus>
                         ยกเลิก
                     </button>
-                    <button
-                        onClick={onConfirm}
-                        className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition ease-in-out delay-150 xs:text-[10px]"
-                    >
-                        ยืนยันการลบ
+                    <button type="button" onClick={onConfirm} className="btn-danger">
+                        ลบข้อมูล
                     </button>
                 </div>
             </div>
         </div>
     );
 };
-export default ConfirmDeleteModal;
 
+ConfirmDeleteModal.propTypes = {
+    isOpen: PropTypes.bool,
+    onClose: PropTypes.func,
+    onConfirm: PropTypes.func,
+    title: PropTypes.string,
+    message: PropTypes.string,
+};
+
+export default ConfirmDeleteModal;

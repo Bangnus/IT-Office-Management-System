@@ -2,76 +2,80 @@
 @tailwind components;
 @tailwind utilities;
 
-@keyframes spin {
-    
+/* Noto Sans Thai, bundled. One family with real weights so font-medium / font-semibold / font-bold work. */
+@font-face { font-family: "NotoThai"; font-weight: 400; font-display: swap; src: url("./assets/fonts/NotoSansThai-Regular.ttf") format("truetype"); }
+@font-face { font-family: "NotoThai"; font-weight: 500; font-display: swap; src: url("./assets/fonts/NotoSansThai-Medium.ttf") format("truetype"); }
+@font-face { font-family: "NotoThai"; font-weight: 600; font-display: swap; src: url("./assets/fonts/NotoSansThai-SemiBold.ttf") format("truetype"); }
+@font-face { font-family: "NotoThai"; font-weight: 700; font-display: swap; src: url("./assets/fonts/NotoSansThai-Bold.ttf") format("truetype"); }
 
-from{
-    transform: rotate(0deg);
-}
-to{
-    transform: rotate(360deg);
-    }
-}
-.spin{
-    animation: spin 40s linear infinite;
-}
+/* Older per-weight families, still referenced by font-primary* classes */
+@font-face { font-family: "regular"; src: url("./assets/fonts/NotoSansThai-Regular.ttf") format("truetype"); }
+@font-face { font-family: "medium"; src: url("./assets/fonts/NotoSansThai-Medium.ttf") format("truetype"); }
+@font-face { font-family: "semibold"; src: url("./assets/fonts/NotoSansThai-SemiBold.ttf") format("truetype"); }
+@font-face { font-family: "bold"; src: url("./assets/fonts/NotoSansThai-Bold.ttf") format("truetype"); }
 
-
-/* width */
-::-webkit-scrollbar {
-  @apply w-1
-}
-
-/* Track */
-::-webkit-scrollbar-track {
-  @apply bg-gray-300
-}
-
-/* Handle */
-::-webkit-scrollbar-thumb {
- @apply bg-gray-400 rounded-lg
+@layer base {
+  html { -webkit-tap-highlight-color: transparent; }
+  body { @apply bg-ink-50 font-sans text-[15px] text-ink-800 antialiased; }
+  ::selection { @apply bg-brand-200 text-brand-900; }
+  :focus-visible { outline: 2px solid theme("colors.brand.500"); outline-offset: 2px; }
+  input, select, textarea { caret-color: theme("colors.brand.600"); }
+  * { scrollbar-width: thin; scrollbar-color: theme("colors.ink.300") transparent; }
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { @apply rounded-full bg-ink-300; }
+  ::-webkit-scrollbar-thumb:hover { @apply bg-ink-400; }
 }
 
-/* Handle on hover */
-::-webkit-scrollbar-thumb:hover {
-  @apply bg-gray-600
+@layer components {
+  /* Surfaces. The page title + actions are rendered by DashMasterLayout. */
+  .card { @apply rounded-xl border border-ink-200 bg-white shadow-card; }
+  .card-pad { @apply p-5 md:p-4; }
+  .card-head { @apply flex flex-wrap items-center justify-between gap-3 border-b border-ink-200 px-5 py-3.5 md:px-4; }
+  .card-title { @apply text-base font-semibold text-ink-900; }
+  .muted { @apply text-sm text-ink-500; }
+
+  /* Buttons */
+  .btn { @apply inline-flex min-h-[40px] items-center justify-center gap-2 whitespace-nowrap rounded-lg px-4 text-sm font-medium transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-60; }
+  .btn-primary { @apply btn bg-brand-600 text-white hover:bg-brand-700 active:bg-brand-800; }
+  .btn-secondary { @apply btn border border-ink-200 bg-white text-ink-700 hover:border-ink-300 hover:bg-ink-50; }
+  .btn-danger { @apply btn bg-red-600 text-white hover:bg-red-700; }
+  .btn-ghost { @apply btn text-ink-600 hover:bg-ink-100 hover:text-ink-900; }
+  .btn-sm { @apply min-h-[34px] px-3 text-[13px]; }
+  /* Square icon buttons for table rows; always give them aria-label + title */
+  .icon-btn { @apply inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-ink-500 transition-colors duration-150 hover:bg-ink-100 hover:text-ink-900; }
+  .icon-btn-danger { @apply icon-btn hover:bg-red-50 hover:text-red-600; }
+  .icon-btn-brand { @apply icon-btn hover:bg-brand-50 hover:text-brand-700; }
+
+  /* Forms */
+  .label { @apply mb-1.5 block text-sm font-medium text-ink-700; }
+  .field { @apply block min-h-[42px] w-full rounded-lg border border-ink-300 bg-white px-3 py-2 text-[15px] text-ink-900 shadow-sm transition-colors placeholder:text-ink-400 hover:border-ink-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20; }
+  .hint { @apply mt-1 text-[13px] text-ink-500; }
+  .file-drop { @apply flex w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-ink-300 bg-ink-50 p-5 text-center text-sm text-ink-500 transition-colors hover:border-brand-400 hover:bg-brand-50; }
+
+  /* Tables: wrap every table in .table-wrap so it scrolls inside its card on small screens */
+  .table-wrap { @apply w-full overflow-x-auto; }
+  .data-table { @apply w-full min-w-[560px] border-collapse text-left text-sm; }
+  .data-table thead th { @apply whitespace-nowrap border-b border-ink-200 bg-ink-50 px-4 py-3 text-[13px] font-semibold text-ink-600; }
+  .data-table tbody td { @apply border-b border-ink-100 px-4 py-3 align-middle text-ink-800; }
+  .data-table tbody tr:last-child td { @apply border-b-0; }
+  .data-table tbody tr { @apply transition-colors hover:bg-ink-50; }
+  .num { font-variant-numeric: tabular-nums; }
+
+  /* Badges */
+  .badge { @apply inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-medium; }
+  .badge-brand { @apply badge bg-brand-50 text-brand-700 ring-1 ring-inset ring-brand-200; }
+  .badge-neutral { @apply badge bg-ink-100 text-ink-600; }
+
+  /* Modal */
+  .modal-backdrop { @apply fixed inset-0 z-50 flex items-center justify-center bg-ink-900/40 p-4; }
+  .modal-panel { @apply max-h-[calc(100vh-2rem)] w-full max-w-md overflow-y-auto rounded-2xl bg-white p-6 shadow-pop md:p-5; }
+  .modal-title { @apply text-lg font-semibold text-ink-900; }
+
+  .empty-state { @apply flex flex-col items-center justify-center gap-2 px-6 py-12 text-center text-sm text-ink-500; }
 }
 
-body {
-    @apply bg-gray-100;
-  }
-
-  @font-face  {
-    font-family: "regular";
-    src: local("NotoSansThai-Regular"),
-    url('./assets/fonts/NotoSansThai-Regular.ttf') format("truetype");
-  }
-  
-  @font-face {
-    font-family: "medium";
-    src: local("NotoSansThai-Medium"),
-    url('./assets/fonts/NotoSansThai-Medium.ttf') format("truetype");
-  }
-  
-  @font-face {
-    font-family: "semibold";
-    src: local("NotoSansThai-SemiBold"),
-    url('./assets/fonts/NotoSansThai-SemiBold.ttf') format("truetype");
-  }
-  
-  @font-face {
-    font-family: "bold";
-    src: local("NotoSansThai-Bold"),
-    url('./assets/fonts/NotoSansThai-Bold.ttf') format("truetype");
-  }
-  
-  @layer utilities {
-      .no-scrollbar::-webkit-scrollbar {
-          display: none;
-      }
-    /* Hide scrollbar for IE, Edge and Firefox */
-      .no-scrollbar {
-          -ms-overflow-style: none;  /* IE and Edge */
-          scrollbar-width: none;  /* Firefox */
-      }
-  }
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+}

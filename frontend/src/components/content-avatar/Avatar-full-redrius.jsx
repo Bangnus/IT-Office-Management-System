@@ -1,10 +1,6 @@
 import PropTypes from 'prop-types';
 import { useAuth } from '../../hooks/AuthProvider';
-import SingleLaoding from '../content-loading/single-loading';
-import RedirusFullLoading from '../content-loading/redirusfull-loading';
-import { TbLogout2 } from "react-icons/tb";
-import { MdOutlineAccountCircle } from "react-icons/md";
-import { FaAngleDown } from "react-icons/fa6";
+import { LuChevronDown, LuLogOut } from "react-icons/lu";
 import {
   Menu,
   MenuHandler,
@@ -12,54 +8,50 @@ import {
   MenuItem,
 } from "@material-tailwind/react";
 
-
+/** User button in the top bar, with a sign-out menu. */
 const AvatarComponent = ({ AvatarName, Cusname }) => {
+  const auth = useAuth();
 
-    const auth = useAuth();
-    
-    return(
-      <div>
-        {
-          Cusname?.firstName === undefined || Cusname?.lastName === undefined ?
-          <div className='flex items-center gap-x-2'>
-            <RedirusFullLoading />
-            <SingleLaoding otherStyle="w-[100px] h-[20px]" />
-          </div>
-          :
-          <Menu
-            animate={{
-              mount: { y: 0 },
-              unmount: { y: 25 },
-            }}
-          >
-            <MenuHandler>
-              <button className='flex border-none bg-primaryofdashboard items-center gap-x-2'>
-                  <div className='w-[38px] h-[38px] rounded-full border-2 border-blue-500 bg-primary flex items-center justify-center'>
-                      <span className='font-primaryMedium text-[14px] flex items-center justify-center text-secondery'>{AvatarName}</span>
-                  </div>
-                  <div className='font-primaryMedium text-white'>
-                      <span>{`${Cusname?.firstName} ${Cusname?.lastName}`}</span>
-                  </div>
-                  <FaAngleDown className='text-white' />
-              </button>
-            </MenuHandler>
-            <MenuList>
-              <MenuItem onClick={() => auth.SignoutAction()}>
-                <div className='flex items-center gap-x-2'>
-                  <TbLogout2 />
-                  <span>Sign Out</span>
-                </div>
-              </MenuItem>
-            </MenuList>
-          </Menu>
-        }
+  if (Cusname?.firstName === undefined) {
+    return (
+      <div className='flex items-center gap-2' aria-hidden="true">
+        <div className='h-9 w-9 animate-pulse rounded-full bg-ink-100' />
+        <div className='h-4 w-24 animate-pulse rounded bg-ink-100 sm:hidden' />
       </div>
     );
+  }
+
+  const fullName = [Cusname.firstName, Cusname.lastName].filter(Boolean).join(' ');
+
+  return (
+    <Menu placement="bottom-end" animate={{ mount: { y: 0, opacity: 1 }, unmount: { y: -6, opacity: 0 } }}>
+      <MenuHandler>
+        <button type="button" className='flex items-center gap-2.5 rounded-full py-1 pl-1 pr-2.5 transition-colors hover:bg-ink-100' aria-label={`บัญชีผู้ใช้ ${fullName}`}>
+          <span className='flex h-9 w-9 items-center justify-center rounded-full bg-brand-100 text-sm font-semibold text-brand-700'>
+            {AvatarName}
+          </span>
+          <span className='max-w-[160px] truncate text-sm font-medium text-ink-800 sm:hidden'>{fullName}</span>
+          <LuChevronDown className='h-4 w-4 text-ink-400' />
+        </button>
+      </MenuHandler>
+      <MenuList className='min-w-[220px] rounded-xl border-ink-200 p-1.5 font-sans shadow-pop'>
+        <div className='px-3 pb-2 pt-1.5 outline-none' tabIndex={-1}>
+          <div className='truncate text-sm font-semibold text-ink-900'>{fullName}</div>
+          {Cusname.username && <div className='truncate text-[13px] text-ink-500'>{Cusname.username}</div>}
+        </div>
+        <hr className='my-1 border-ink-100' />
+        <MenuItem onClick={() => auth.SignoutAction()} className='flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm text-ink-700 hover:!bg-red-50 hover:!text-red-700 focus:!bg-red-50 focus:!text-red-700'>
+          <LuLogOut className='h-4 w-4' />
+          ออกจากระบบ
+        </MenuItem>
+      </MenuList>
+    </Menu>
+  );
 };
 
 AvatarComponent.propTypes = {
-    AvatarName: PropTypes.string,
-    Cusname: PropTypes.any,
+  AvatarName: PropTypes.string,
+  Cusname: PropTypes.any,
 };
 
 export default AvatarComponent;

@@ -1,161 +1,112 @@
 import { NavLink } from "react-router-dom";
-import { RxDashboard } from "react-icons/rx";
-import { LuPackage } from "react-icons/lu";
-import { RiArrowLeftDoubleLine, RiArrowRightDoubleLine } from "react-icons/ri";
-import { PiShoppingBagOpenBold } from "react-icons/pi";
-import LogoComponent from '../../../components/Logo/logo';
-import Cookies from 'js-cookie';
-import { useEffect, useState } from "react";
-import { fetchclassVC } from "../../../slicers/classSlicer";
-import { useSelector, useDispatch } from "react-redux";
-import { IoIosArrowForward, IoIosArrowDown } from "react-icons/io";
-import { FaChalkboardTeacher } from "react-icons/fa";
-import { PiStudentFill } from "react-icons/pi";
-import { HiComputerDesktop } from "react-icons/hi2";
-import { RiHomeGearFill } from "react-icons/ri";
-import { MdDashboard } from "react-icons/md";
-import { FaUsersGear } from "react-icons/fa6";
-import { FaUserGear } from "react-icons/fa6";
-import { BsBuildingFillGear } from "react-icons/bs";
+import PropTypes from "prop-types";
+import {
+    LuLayoutDashboard,
+    LuUsers,
+    LuGraduationCap,
+    LuDoorOpen,
+    LuMonitor,
+    LuChevronsLeft,
+    LuChevronsRight,
+    LuX,
+} from "react-icons/lu";
+import LogoComponent from "../../../components/Logo/logo";
 
-const SliderComponent = () => {
-    const dispatch = useDispatch();
-    const [sliderSize, setSliderSize] = useState(Cookies.get('sliderSize') === 'true');
-    const [isOpenMenu, setIsOpenMenu] = useState(null); // สำหรับการเปิด/ปิดเมนูย่อย
-    const fetchClass = useSelector(state => Array.isArray(state.class.class) ? state.class.class : []);
+export const MENU_GROUPS = [
+    {
+        items: [{ label: "หน้าหลัก", path: "/dashboard", icon: LuLayoutDashboard }],
+    },
+    {
+        title: "บุคลากรและนักเรียน",
+        items: [
+            { label: "ข้อมูลอาจารย์", path: "/home/teacher", icon: LuUsers },
+            { label: "นักเรียน ปวช.", path: "/home/Vocational-Certificate", icon: LuGraduationCap },
+            { label: "นักเรียน ปวส.", path: "/home/Higher-Vocational-Certificate", icon: LuGraduationCap },
+            { label: "นักเรียน ป.ตรี", path: "/home/Bachelors-Degree", icon: LuGraduationCap },
+        ],
+    },
+    {
+        title: "อาคารและอุปกรณ์",
+        items: [
+            { label: "จัดการห้องเรียน", path: "/home/manage-classroom", icon: LuDoorOpen },
+            { label: "จัดการอุปกรณ์", path: "/home/manage-equipment", icon: LuMonitor },
+        ],
+    },
+];
 
-    useEffect(() => {
-        dispatch(fetchclassVC());
-    }, [dispatch]);
-
-    const handlerChangeSize = () => {
-        setSliderSize(!sliderSize);
-        Cookies.set('sliderSize', !sliderSize);
-    };
-
-    const handleToggleDropdown = (index, path) => {
-        Cookies.set('MenuPath', path)
-        setIsOpenMenu(isOpenMenu === index ? null : index);
-    };
-
-    // const handleMenuClick = (path) => {
-    //     Cookies.set('MunuPath', path)
-    // }
-    const MenuOption = [
-        {
-            label: 'หน้าหลัก',
-            path: '/dashboard',
-            icon: <MdDashboard />,
-        },
-        {
-            label: 'ข้อมูลอาจารย์',
-            path: '/home/teacher',
-            icon: <FaUserGear  />,
-        },
-        {
-            label: 'ข้อมูลนักเรียน ปวช',
-            path: '/home/Vocational-Certificate',
-            icon: <FaUsersGear  />,
-            // subMenu: fetchClass?.filter(item => item.classroom.includes("ปวช"))?.map(item => ({
-            //     label: item.classroom,
-            //     path: `/class/${item.id}`,
-            // })) || [],
-        },
-        {
-            label: 'ข้อมูลนักเรียน ปวส',
-            path: '/home/Higher-Vocational-Certificate',
-            icon: <FaUsersGear  />,
-            // subMenu: fetchClass?.filter(item => item.classroom.includes("ปวส"))?.map(item => ({
-            //     label: item.classroom,
-            //     path: `/class/${item.id}`,
-            // })) || [],
-        },
-        {
-            label: 'ข้อมูลนักเรียน ป.ตรี',
-            path: '/home/Bachelors-Degree',
-            icon: <FaUsersGear  />,
-            // subMenu: fetchClass?.filter(item => item.classroom.includes("ป.ตรี"))?.map(item => ({
-            //     label: item.classroom,
-            //     path: `/class/${item.id}`,
-            // })) || [],
-        },
-        {
-            label: 'จัดการห้องเรียน',
-            path: '/home/manage-classroom',
-            icon: <BsBuildingFillGear  />,
-        },
-        {
-            label: 'จัดการอุปกรณ์',
-            path: '/home/manage-equipment',
-            icon: <HiComputerDesktop />,
-        },
-    ];
+/** Sidebar navigation. Used as the fixed desktop sidebar and inside the mobile drawer. */
+const SliderComponent = ({ collapsed = false, onToggle, onClose, inDrawer = false }) => {
+    const narrow = collapsed && !inDrawer;
 
     return (
-        <div className={`h-screen bg-white ${sliderSize ? 'w-[75px]' : 'w-[270px]'} lg:w-[75px] duration-100 ease-in-out`}>
-            <div className={`font-primaryBold uppercase text-white flex items-center h-[55px] lg:justify-center px-3 ${sliderSize ? 'justify-center' : 'justify-between'}`}>
-                <div className={`${sliderSize ? 'hidden' : 'animate-fade-right animate-once animate-delay-100 animate-ease-in-out'} lg:hidden`}>
-                    <LogoComponent mode={true} />
-                </div>
-                <button
-                    onClick={handlerChangeSize}
-                    className="text-[30px] h-[35px] w-[35px] flex justify-center text-primary items-center hover:bg-primary hover:text-white duration-100 ease-in-out rounded-md"
-                >
-                    {sliderSize ? <RiArrowRightDoubleLine /> : <RiArrowLeftDoubleLine />}
-                </button>
+        <div className="flex h-full flex-col bg-white">
+            <div className={`flex h-16 shrink-0 items-center border-b border-ink-200 px-4 ${narrow ? "justify-center" : "justify-between"}`}>
+                <LogoComponent compact={narrow} />
+                {inDrawer && (
+                    <button type="button" onClick={onClose} className="icon-btn" aria-label="ปิดเมนู">
+                        <LuX className="h-5 w-5" />
+                    </button>
+                )}
             </div>
-            <div className="w-full grid grid-cols-1 gap-y-2 duration-100 ease-in-out">
-                {MenuOption.map((item, index) => (
-                    <div key={index}>
-                        <NavLink
-                            className={({ isActive }) =>
-                                isActive ? 'w-full px-3 flex items-center border-l-[5px] border-primary py-2 bg-blue-400 text-white font-primaryRegular text-[16px]'
-                                    : 'w-full px-3 flex items-center border-white border-l-[5px] py-2 text-primaryofdashboard font-primaryRegular text-[16px]'
-                            }
-                            to={item.path}
-                            onClick={() => handleToggleDropdown(index, item.path)}
-                        >
-                            <div className={`flex items-center gap-x-3 lg:ml-1 ${sliderSize ? 'ml-1' : ''}`}>
-                                <div className="flex h-[35px] w-[35px] items-center justify-center rounded-md bg-primaryofdashboard text-white text-[16px]">
-                                    {item.icon}
-                                </div>
-                                <span className={`lg:hidden ${sliderSize ? 'hidden' : ''}`}>{item.label}</span>
-                                {/* <div>
-                                    {item.label !== 'หน้าหลัก' && (
-                                        <div>
-                                            {isOpenMenu === index ? <IoIosArrowDown /> : <IoIosArrowForward />}
-                                        </div>
-                                    )}
-                                </div> */}
-                            </div>
-                        </NavLink>
 
-                        {/* เมนูย่อย */}
-                        {item.subMenu && item.subMenu.length > 0 && (
-                            <div>
-                                {isOpenMenu === index && (
-                                    <div>
-                                        {item.subMenu.map((subItem, subIndex) => (
-                                            <NavLink
-                                                key={subIndex}
-                                                className={({ isActive }) =>
-                                                    isActive ? 'w-full px-3 flex items-center border-l-[5px] border-primary py-2 bg-blue-400 text-white font-primaryRegular text-[16px]'
-                                                        : 'hover:bg-blue-200 w-full flex items-center border-white py-2 text-primaryofdashboard font-primaryRegular text-[16px]'
-                                                }
-                                                to={subItem.path}
-                                            >
-                                                <span>{subItem.label}</span>
-                                            </NavLink>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
+            <nav className="flex-1 overflow-y-auto px-3 py-4" aria-label="เมนูหลัก">
+                {MENU_GROUPS.map((group, gi) => (
+                    <div key={gi} className={gi > 0 ? "mt-5" : ""}>
+                        {group.title && !narrow && (
+                            <div className="mb-1.5 px-3 text-xs font-medium text-ink-400">{group.title}</div>
                         )}
+                        {group.title && narrow && <div className="mx-3 mb-2 border-t border-ink-200" />}
+                        <ul className="space-y-0.5">
+                            {group.items.map(({ label, path, icon: Icon }) => (
+                                <li key={path}>
+                                    <NavLink
+                                        to={path}
+                                        onClick={onClose}
+                                        title={narrow ? label : undefined}
+                                        className={({ isActive }) =>
+                                            `group flex min-h-[42px] items-center gap-3 rounded-lg px-3 text-[15px] transition-colors duration-150 ${narrow ? "justify-center" : ""} ${isActive
+                                                ? "bg-brand-50 font-semibold text-brand-700"
+                                                : "text-ink-600 hover:bg-ink-100 hover:text-ink-900"
+                                            }`
+                                        }
+                                    >
+                                        {({ isActive }) => (
+                                            <>
+                                                <Icon className={`h-[19px] w-[19px] shrink-0 ${isActive ? "text-brand-600" : "text-ink-400 group-hover:text-ink-600"}`} />
+                                                {!narrow && <span className="truncate">{label}</span>}
+                                            </>
+                                        )}
+                                    </NavLink>
+                                </li>
+                            ))}
+                        </ul>
                     </div>
                 ))}
-            </div>
+            </nav>
+
+            {!inDrawer && (
+                <div className="shrink-0 border-t border-ink-200 p-3">
+                    <button
+                        type="button"
+                        onClick={onToggle}
+                        className={`flex min-h-[40px] w-full items-center gap-3 rounded-lg px-3 text-sm text-ink-500 transition-colors hover:bg-ink-100 hover:text-ink-900 ${narrow ? "justify-center" : ""}`}
+                        aria-label={narrow ? "ขยายเมนู" : "ย่อเมนู"}
+                        title={narrow ? "ขยายเมนู" : "ย่อเมนู"}
+                    >
+                        {narrow ? <LuChevronsRight className="h-[18px] w-[18px]" /> : <LuChevronsLeft className="h-[18px] w-[18px]" />}
+                        {!narrow && <span>ย่อเมนู</span>}
+                    </button>
+                </div>
+            )}
         </div>
     );
+};
+
+SliderComponent.propTypes = {
+    collapsed: PropTypes.bool,
+    onToggle: PropTypes.func,
+    onClose: PropTypes.func,
+    inDrawer: PropTypes.bool,
 };
 
 export default SliderComponent;

@@ -1,197 +1,211 @@
-import React, { useEffect, useState } from 'react'
-import DashMasterLayout from '../../layouts/master'
-import { fetchClassroom, deleteClassroom, createClassroom } from '../../../../slicers/classroomSlicer'
-import { useDispatch, useSelector } from 'react-redux'
-import { SiGoogleclassroom } from "react-icons/si";
-import { MdAdd } from "react-icons/md";
-import { TiDelete } from "react-icons/ti";
+import { useEffect, useId, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { LuBuilding2, LuDoorOpen, LuPlus, LuTrash2 } from 'react-icons/lu';
+import DashMasterLayout from '../../layouts/master';
+import { fetchClassroom, deleteClassroom, createClassroom } from '../../../../slicers/classroomSlicer';
+import Modal from '../../../../components/content-alert/Modal';
 import ConfirmDeleteModal from '../../../../components/content-alert/ConfirmDeleteModal';
-import { ToastifyError, ToastifyInfo, ToastifySuccess, ToastifyWarning } from '../../../../components/content-alert/toastify';
 import InputComponet from '../../../../components/content-input/input-full';
-import ButtonFullComponent from '../../../../components/content-buttons/full-button';
-import { IoMdAdd } from "react-icons/io";
+import { ToastifyError, ToastifySuccess, ToastifyWarning } from '../../../../components/content-alert/toastify';
+import { byThaiName } from './classLevels';
+
+// "IT-321 ห้องปฏิบัติการคอมพิวเตอร์ 1" -> code "IT-321", name "ห้องปฏิบัติการคอมพิวเตอร์ 1"
+const splitRoomName = (roomname = '') => {
+    const m = (roomname ?? '').trim().match(/^([A-Za-z0-9][A-Za-z0-9./-]*)\s+(.+)$/);
+    return m && /\d/.test(m[1]) ? { code: m[1], name: m[2] } : { code: roomname || 'ไม่มีชื่อห้อง', name: '' };
+};
 
 const ViewManageClass = () => {
-  const dispatch = useDispatch()
-  const [isOpenDelete, setIsOpenDelete] = useState(false)
-  const [deleteID, setDeleteID] = useState('')
-  const [isOpenConfirmDelete, setIsOpenConfirmDelete] = useState(false)
-  const [isOpenModelCreate, setIsOpemModelCreate] = useState(false)
-  //create Data
-  const [roomID, setRoomID] = useState('')
-  const [roomname, setRoomname] = useState('')
-  const fetchclassroomData = useSelector((state) => state.classroom.classroom)
-  console.log(fetchclassroomData)
+    const dispatch = useDispatch();
+    const fieldId = useId();
+    const rooms = useSelector((state) => state.classroom.classroom);
+    const [loaded, setLoaded] = useState(false);
+    const [isCreateOpen, setIsCreateOpen] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+    const [roomID, setRoomID] = useState('');
+    const [roomname, setRoomname] = useState('');
+    const [deleting, setDeleting] = useState(null);
 
+    useEffect(() => {
+        dispatch(fetchClassroom()).finally(() => setLoaded(true));
+    }, [dispatch]);
 
-  useEffect(() => {
-    dispatch(fetchClassroom())
-  }, [dispatch])
+    // Group rooms by roomID (building / floor)
+    const list = Array.isArray(rooms) ? rooms : [];
+    const grouped = Object.entries(
+        list.reduce((acc, room) => {
+            const key = room.roomID || 'ไม่ระบุอาคาร';
+            (acc[key] ||= []).push(room);
+            return acc;
+        }, {})
+    )
+        .sort(([a], [b]) => byThaiName(a, b))
+        .map(([key, items]) => [key, [...items].sort((a, b) => byThaiName(a.roomname, b.roomname))]);
 
-  // แบ่งข้อมูลตาม roomID == เเบ่งตามชั้น
-  const groupedClassrooms = Array.isArray(fetchclassroomData)
-    ? fetchclassroomData.reduce((acc, classroom) => {
-      const { roomID } = classroom
-      if (!acc[roomID]) {
-        acc[roomID] = []
-      }
-      acc[roomID].push(classroom)
-      return acc
-    }, {})
-    : {};
-  const handleOpenDelete = () => {
-    setIsOpenDelete(!isOpenDelete)
-  }
-  const handleConfirmDelete = (id) => {
-    setDeleteID(id)
-    setIsOpenConfirmDelete(true)
-  }
-  const handleDelete = async () => {
-    try {
-      if (!deleteID) {
-        throw new Error('ไม่พบ ID ของนักเรียนที่ต้องการลบ')
-      }
+    const openCreate = (presetRoomID = '') => {
+        setRoomID(presetRoomID);
+        setRoomname('');
+        setIsCreateOpen(true);
+    };
+    const closeCreate = () => !isSaving && setIsCreateOpen(false);
 
-      const response = await dispatch(deleteClassroom(deleteID))
+    const handleCreate = async (e) => {
+        e.preventDefault();
+        if (!roomID.trim() || !roomname.trim()) {
+            ToastifyWarning({ lable: 'กรุณากรอกอาคาร/ชั้น และชื่อห้องให้ครบ' });
+            return;
+        }
+        try {
+            setIsSaving(true);
+            const response = await dispatch(createClassroom({ roomID: roomID.trim(), roomname: roomname.trim() }));
+            if (response.payload?.status === true) {
+                ToastifySuccess({ lable: 'เพิ่มห้องสำเร็จ' });
+                setIsCreateOpen(false);
+                await dispatch(fetchClassroom());
+            } else {
+                ToastifyWarning({ lable: 'เพิ่มห้องไม่สำเร็จ' });
+            }
+        } catch {
+            ToastifyError({ lable: 'เกิดข้อผิดพลาด' });
+        } finally {
+            setIsSaving(false);
+        }
+    };
 
-      if (response.payload.status === true) {
-        ToastifySuccess({ lable: "ลบข้อมูลสำเร็จ" })
-        setDeleteID('')
-        setIsOpenConfirmDelete(false)
-        await dispatch(fetchClassroom())
-      } else {
-        ToastifyWarning({ lable: "ลบข้อมูลไม่สำร็จ" })
-      }
-    } catch (error) {
-      ToastifyError({ lable: "เกิดข้อผิดพลาด" })
-    }
-  }
+    const handleDelete = async () => {
+        try {
+            const response = await dispatch(deleteClassroom(deleting.id));
+            if (response.payload?.status === true) {
+                ToastifySuccess({ lable: 'ลบห้องสำเร็จ' });
+                setDeleting(null);
+                await dispatch(fetchClassroom());
+            } else {
+                ToastifyWarning({ lable: 'ลบห้องไม่สำเร็จ' });
+            }
+        } catch {
+            ToastifyError({ lable: 'เกิดข้อผิดพลาด' });
+        }
+    };
 
-  const handleCreate = async () => {
-    try {
-      if (!roomname || !roomID) {
-        ToastifyWarning({ lable: "กรุณาใส่ข้อมูลให้ครบ" })
-        return;
-      }
-      const data = {
-        roomID: roomID,
-        roomname: roomname
-      }
-      const response = await dispatch(createClassroom(data))
-
-      if (response.payload.status === true) {
-        ToastifySuccess({ lable: "เพิ่มข้อมูลสำเร็จ" })
-        setRoomID('')
-        setRoomname('')
-        setIsOpemModelCreate(false)
-        await dispatch(fetchClassroom())
-      } else {
-        ToastifyWarning({ lable: "เพิ่มข้อมูลไม่สำเร็จ" })
-      }
-    } catch (error) {
-
-    }
-  }
-
-
-  return (
-    <DashMasterLayout title={"จัดการห้องเรียน"}>
-      <div className="space-y-5 animate-fade-up animate-once animate-ease-in-out animate-normal animate-fill-forwards">
-        <div className="bg-white rounded-lg shadow-lg flex items-center justify-between gap-x-2 p-4">
-          <h1 className='text-xl font-bold'>ห้องเรียนทั้งหมด</h1>
-          <div className="flex items-center gap-x-2">
-            <button
-              onClick={() => setIsOpemModelCreate(true)}
-              className='font-semibold flex items-center bg-green-500 px-2 py-2 rounded-lg text-white hover:bg-green-600 hover:shadow-lg'
-            >
-              <IoMdAdd size={20} />
-            </button>
-            {fetchclassroomData.length === 0 ? (
-              ''
-            ) : (
-              <button
-                onClick={handleOpenDelete}
-                className='font-semibold flex items-center bg-red-500 px-2 py-2 rounded-lg text-white hover:bg-red-600 hover:shadow-lg'
-              >
-                ลบห้องเรียน
-              </button>
-            )}
-
-          </div>
-        </div>
-        {Object.entries(groupedClassrooms).map(([roomID, classrooms]) => (
-          <div
-            onClick={() => setRoomID(roomID)}
-            key={roomID}
-          >
-            <div className="bg-white p-4 rounded-lg shadow-md hover:shadow-lg">
-              <h2 className="text-lg font-bold mb-3">ห้องเรียน: {roomID}</h2>
-              <div className="grid grid-cols-4 gap-5 animate-fade animate-once animate-ease-in animate-normal animate-fill-forwards">
-                {classrooms.map((classroom) => (
-                  <div key={classroom.id} className="relative flex items-center justify-center h-40 w-full bg-white border border-gray-400 rounded-lg shadow-md hover:shadow-lg ">
-                    {isOpenDelete === true && (
-                      <div
-                        onClick={() => handleConfirmDelete(classroom.id)}
-                        className="absolute top-[-25px] right-[-25px] p-2 text-red-500 z-10 cursor-pointer animate-fade animate-once animate-ease-out animate-normal animate-fill-forwards ">
-                        <TiDelete size={40} />
-                      </div>
-                    )}
-                    <div className="flex flex-col items-center gap-2">
-                      <SiGoogleclassroom size={80} />
-                      <div className="text-lg font-bold">{classroom.roomname}</div>
-                    </div>
-                  </div>
-                ))}
-                <div
-                  onClick={() => setIsOpemModelCreate(true)}
-                  className="flex items-center justify-center h-40 w-full bg-white  border border-gray-400 rounded-lg shadow-md hover:shadow-lg cursor-pointer">
-                  <div
-                    className="flex  items-center gap-2">
-                    <MdAdd size={100} />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-      {isOpenModelCreate === true && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50"
-          onClick={() => setIsOpemModelCreate(false)}
+    return (
+        <DashMasterLayout
+            title="จัดการห้องเรียน"
+            description={list.length > 0 ? `ห้องทั้งหมด ${list.length} ห้อง ใน ${grouped.length} อาคาร/ชั้น` : 'ห้องเรียนและห้องปฏิบัติการ แยกตามอาคารและชั้น'}
+            actions={
+                <button type="button" onClick={() => openCreate()} className="btn-primary">
+                    <LuPlus className="h-4 w-4" /> เพิ่มห้อง
+                </button>
+            }
         >
-          <div
-            className="bg-white rounded-lg p-6 w-full max-w-[30rem] sm:w-96 md:w-1/3 shadow-lg animate-jump-in animate-once animate-ease-out animate-normal animate-fill-forwards"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h1 className="text-xl font-bold mb-4">เพิ่มข้อมูลห้องเรียน</h1>
-            <div className="space-y-4">
-              <InputComponet
-                label={"ชั้น"}
-                value={roomID}
-                OnChange={(value) => setRoomID(value)}
-              />
-              <InputComponet
-                label={"ชื่อห้อง"}
-                value={roomname}
-                OnChange={(value) => setRoomname(value)}
-              />
-              <ButtonFullComponent
-                lable={"เพิ่มข้อมูล"}
-                color={"blue"}
-                func={handleCreate}
-              />
+            <div className="animate-fade-up animate-duration-300 animate-ease-out">
+                {grouped.length === 0 ? (
+                    <div className="card empty-state">
+                        {loaded ? (
+                            <>
+                                <LuDoorOpen className="h-8 w-8 text-ink-400" />
+                                <p>ยังไม่มีห้องในระบบ</p>
+                                <button type="button" onClick={() => openCreate()} className="btn-primary btn-sm mt-2">
+                                    <LuPlus className="h-4 w-4" /> เพิ่มห้อง
+                                </button>
+                            </>
+                        ) : (
+                            'กำลังโหลดข้อมูล…'
+                        )}
+                    </div>
+                ) : (
+                    <div className="space-y-8 md:space-y-6">
+                        {grouped.map(([group, items]) => (
+                            <section key={group} aria-label={group}>
+                                <div className="mb-3 flex items-center gap-2">
+                                    <LuBuilding2 className="h-[18px] w-[18px] shrink-0 text-ink-400" />
+                                    <h2 className="min-w-0 truncate text-base font-semibold text-ink-900">{group}</h2>
+                                    <span className="badge-neutral num">{items.length} ห้อง</span>
+                                    <button
+                                        type="button"
+                                        onClick={() => openCreate(group)}
+                                        className="btn-ghost btn-sm ml-auto text-brand-700 hover:text-brand-800"
+                                        aria-label={`เพิ่มห้องใน ${group}`}
+                                    >
+                                        <LuPlus className="h-4 w-4" /> เพิ่มห้อง
+                                    </button>
+                                </div>
+                                <ul className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,260px),1fr))] gap-3">
+                                    {items.map((room) => {
+                                        const { code, name } = splitRoomName(room.roomname);
+                                        return (
+                                            <li key={room.id} className="card flex min-w-0 items-start gap-3 p-4">
+                                                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-700">
+                                                    <LuDoorOpen className="h-5 w-5" />
+                                                </span>
+                                                <div className="min-w-0 flex-1 pt-0.5">
+                                                    <p className="break-words font-semibold leading-snug text-ink-900 [text-wrap:pretty]">{code}</p>
+                                                    {name && <p className="mt-0.5 break-words text-[13px] leading-snug text-ink-500 [text-wrap:pretty]">{name}</p>}
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setDeleting(room)}
+                                                    className="icon-btn-danger -mr-1.5 -mt-1.5"
+                                                    aria-label={`ลบห้อง ${room.roomname}`}
+                                                    title="ลบห้อง"
+                                                >
+                                                    <LuTrash2 className="h-[18px] w-[18px]" />
+                                                </button>
+                                            </li>
+                                        );
+                                    })}
+                                </ul>
+                            </section>
+                        ))}
+                    </div>
+                )}
             </div>
-          </div>
-        </div>
-      )}
-      <ConfirmDeleteModal
-        isOpen={isOpenConfirmDelete}
-        onClose={() => setIsOpenConfirmDelete(false)}
-        onConfirm={handleDelete}
-      />
-    </DashMasterLayout>
-  )
-}
 
-export default ViewManageClass
+            <Modal isOpen={isCreateOpen} onClose={closeCreate} title="เพิ่มห้อง" description="ระบุอาคาร/ชั้น และชื่อห้อง">
+                <form onSubmit={handleCreate} className="space-y-4" noValidate>
+                    <div>
+                        <label htmlFor={`${fieldId}-roomid`} className="label">
+                            อาคาร / ชั้น<span className="ml-0.5 text-red-600" aria-hidden="true">*</span>
+                        </label>
+                        <input
+                            id={`${fieldId}-roomid`}
+                            className="field"
+                            list={`${fieldId}-groups`}
+                            value={roomID}
+                            onChange={(e) => setRoomID(e.target.value)}
+                            placeholder="เช่น อาคาร 3 ชั้น 2"
+                            autoComplete="off"
+                            required
+                        />
+                        <datalist id={`${fieldId}-groups`}>
+                            {grouped.map(([group]) => <option key={group} value={group} />)}
+                        </datalist>
+                    </div>
+                    <InputComponet
+                        label="ชื่อห้อง"
+                        value={roomname}
+                        OnChange={setRoomname}
+                        placeholder="เช่น IT-321 ห้องปฏิบัติการคอมพิวเตอร์ 1"
+                        hint="ขึ้นต้นด้วยรหัสห้อง ตามด้วยชื่อห้อง"
+                        required
+                    />
+                    <div className="flex justify-end gap-2 pt-2">
+                        <button type="button" onClick={closeCreate} className="btn-secondary">ยกเลิก</button>
+                        <button type="submit" disabled={isSaving} className="btn-primary">
+                            {isSaving ? 'กำลังบันทึก…' : 'บันทึก'}
+                        </button>
+                    </div>
+                </form>
+            </Modal>
+
+            <ConfirmDeleteModal
+                isOpen={deleting !== null}
+                onClose={() => setDeleting(null)}
+                onConfirm={handleDelete}
+                title="ลบห้อง"
+                message={deleting ? `ลบห้อง ${deleting.roomname} แล้วจะกู้คืนไม่ได้ ต้องการลบใช่ไหม?` : undefined}
+            />
+        </DashMasterLayout>
+    );
+};
+
+export default ViewManageClass;

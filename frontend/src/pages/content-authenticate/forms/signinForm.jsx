@@ -1,135 +1,90 @@
 /* eslint-disable react-hooks/rules-of-hooks */
-// component
-import LogoComponent from '../../../components/Logo/logo'
 import InputComponet from '../../../components/content-input/input-full';
-import OutlineButtonComponent from '../../../components/content-buttons/outline-button';
-import GoogleIcon from '../../../assets/Icons/google-icon.png';
-import FacebookIcon from '../../../assets/Icons/facebook-icon.png';
 import ButtonFullComponent from '../../../components/content-buttons/full-button';
-import { useState, useEffect, useRef } from 'react';
+import PasswordField from './passwordField';
 import { ToastifySuccess, ToastifyError } from '../../../components/content-alert/toastify';
-
-
-// libs
-import { Divider } from 'antd';
-import { Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../../../hooks/AuthProvider';
 import Cookies from 'js-cookie';
 
-const signinForm = () => {
+// Same-origin path to open after signing in: the last dashboard page, or /dashboard.
+// A full reload is needed because AxiosInstance reads the auth cookie when its module loads.
+const goAfterSignIn = (lastPage) => {
+    const safe = typeof lastPage === 'string' && lastPage.startsWith('/') && !lastPage.startsWith('//') && lastPage !== '/';
+    window.location.href = safe ? lastPage : '/dashboard';
+};
 
-    const navigate = useNavigate();
+const failMessage = (response) =>
+    response?.offline ? 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ กรุณาลองใหม่อีกครั้ง' : 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง';
+
+const signinForm = () => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const isFatcing = useRef(false);
+    const autoTried = useRef(false);
     const auth = useAuth();
-    const authToken = Cookies.get('authToken');
-    const lastPage = Cookies.get("lastPath");
-    let localpath = window.location.href;
+    const lastPage = Cookies.get('lastPath');
 
-    const handleSignup = async () => {
-        try {
-            setIsLoading(true);
-            if (!username ||!password) throw 'All fields are required';
-            let data = {
-                username: username,
-                password: password
-            };
-            const response = await auth.SiginAction(data);
-
-            if (response.status === true) {
-                ToastifySuccess({ lable: 'Sign In successfully' });
-                setIsLoading(false);
-                setTimeout(() => {
-                    if (lastPage === undefined || lastPage === '/') {
-                        window.location.href = `http://127.0.0.1:5173/dashboard`;
-                    } else {
-                        window.location.href = `http://127.0.0.1:5173${lastPage}`;
-                    }
-                }, 2000);
-            }
-        } catch (error) {
+    const handleSignin = async (e) => {
+        e?.preventDefault();
+        if (isLoading) return;
+        if (!username.trim() || !password) {
+            ToastifyError({ label: 'กรุณากรอกชื่อผู้ใช้และรหัสผ่าน' });
+            return;
+        }
+        setIsLoading(true);
+        const response = await auth.SiginAction({ username: username.trim(), password });
+        if (response?.status === true) {
+            ToastifySuccess({ label: 'เข้าสู่ระบบสำเร็จ' });
+            setTimeout(() => goAfterSignIn(lastPage), 800);
+        } else {
             setIsLoading(false);
-            ToastifyError({ label: error });
+            ToastifyError({ label: failMessage(response) });
         }
     };
 
+    // After sign-up the new credentials are left in localStorage so the user is signed in automatically
     useEffect(() => {
-        const getdataField = async () => {
-            const username = localStorage.getItem('username');
-            const password = localStorage.getItem('password');
-            autoSignIn(username, password);
-        };
+        const savedUser = localStorage.getItem('username');
+        const savedPassword = localStorage.getItem('password');
+        // Try once per visit: `auth` changes identity on every store update, which would otherwise retry in a loop
+        if (!savedUser || !savedPassword || autoTried.current) return;
+        autoTried.current = true;
 
-        const autoSignIn = async (username, password) => {
-            try { 
-                if (isFatcing.current) return;
-                setIsLoading(true);
-              
-                let FormData = {
-                    username: username,
-                    password: password
-                }
-                isFatcing.current = true;
-                const response = await auth.SiginAction(FormData);
-                isFatcing.current = false;                
-    
-                if (response.status === true) {
-                    await localStorage.removeItem('username');
-                    await localStorage.removeItem('password');
-                    setUsername('');
-                    setPassword('');
-                    setIsLoading(false);
-                    if (lastPage === undefined || lastPage === '/') {
-                        window.location.href = `http://127.0.0.1:5173/dashboard`;
-                    } else {
-                        window.location.href = `http://127.0.0.1:5173${lastPage}`;
-                    }
-                }
-            // eslint-disable-next-line no-unused-vars
-            } catch (error) {
+        const autoSignIn = async () => {
+            setIsLoading(true);
+            const response = await auth.SiginAction({ username: savedUser, password: savedPassword });
+            if (response?.status === true) {
+                localStorage.removeItem('username');
+                localStorage.removeItem('password');
+                goAfterSignIn(lastPage);
+            } else {
                 setIsLoading(false);
             }
         };
-
-        if (localStorage.getItem('username') && localStorage.getItem('password')) {
-            getdataField();
-        }
-    }, [auth, navigate, authToken, lastPage, localpath]);
-
-    // useEffect(() => {
-    //     if (authToken) {
-    //         navigate(lastPage);
-    //     }
- 
-    // }, [authToken, navigate, lastPage]);
+        autoSignIn();
+    }, [auth, lastPage]);
 
     return (
-        <div className="my-10 px-[20px] xs:mt-0">
-            <div className="font-primaryBold text-primary uppercase animate-fade-down animate-once animate-duration-1000 animate-delay-100 text-[25px]">
-                <LogoComponent />
-            </div>
-            <div className="font-primaryMedium text-[20px] animate-fade-down animate-once animate-duration-1000">
-                <span>Sign In</span>
-            </div>
-            <div className="my-[20px] animate-fade-left animate-once animate-duration-1000">
-                <div className="my-5">
-                    <InputComponet color="blue" label="Username" value={username} OnChange={setUsername} />
-                </div>
-                <div className="mt-5 mb-2">
-                    <InputComponet color="blue" type="password" label="Password" value={password} OnChange={setPassword} />
-                </div>
-                <div className="flex justify-between text-[14px] text-primary xs:text-[12px] xs:mt-5">
-                    <Link to="/authenticate/signup">Create new account</Link>
-                    <Link className="text-danger">Forgot Password?</Link>
-                </div>
-            </div>
-            <div className="animate-fade-up animate-once animate-duration-1000">
-                <ButtonFullComponent color="blue" lable="Sign In" func={handleSignup} isLoading={isLoading} />
-            </div>
-        </div>
-    )
-}
+        <div>
+            <h1 className="text-2xl font-semibold tracking-tight text-ink-900 md:text-xl">เข้าสู่ระบบ</h1>
+            <p className="mt-1 text-sm text-ink-500">กรอกชื่อผู้ใช้และรหัสผ่านเพื่อเข้าใช้งานระบบ</p>
 
-export default signinForm
+            <form onSubmit={handleSignin} className="mt-7 space-y-5" noValidate>
+                <InputComponet label="ชื่อผู้ใช้" value={username} OnChange={setUsername} autoComplete="username" />
+                <PasswordField value={password} OnChange={setPassword} autoComplete="current-password" />
+                <ButtonFullComponent type="submit" color="blue" lable="เข้าสู่ระบบ" isLoading={isLoading} className="!mt-7" />
+            </form>
+
+            <p className="mt-6 text-center text-sm text-ink-500">
+                ยังไม่มีบัญชี?{' '}
+                <Link to="/authenticate/signup" className="font-medium text-brand-600 hover:text-brand-700 hover:underline">
+                    สร้างบัญชีใหม่
+                </Link>
+            </p>
+        </div>
+    );
+};
+
+export default signinForm;

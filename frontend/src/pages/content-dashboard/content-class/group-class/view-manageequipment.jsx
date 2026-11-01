@@ -1,15 +1,65 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
+import PropTypes from 'prop-types'
 import DashMasterLayout from '../../layouts/master'
 import { createEquipment, fetchEquipment, deleteEquipment } from '../../../../slicers/equipmentSlicer'
 import { useDispatch, useSelector } from 'react-redux'
-import { RiEdit2Fill } from "react-icons/ri";
-import { TiDelete } from "react-icons/ti";
 import InputComponet from '../../../../components/content-input/input-full';
-import ButtonFullComponent from '../../../../components/content-buttons/full-button';
-import { BiImageAdd } from "react-icons/bi";
 import { ToastifyError, ToastifySuccess, ToastifyWarning } from '../../../../components/content-alert/toastify';
 import { Link } from 'react-router-dom'
 import ConfirmDeleteModal from '../../../../components/content-alert/ConfirmDeleteModal';
+import Modal from '../../../../components/content-alert/Modal';
+import { fileUrl } from '../../../../hooks/fileUrl';
+import { LuImagePlus, LuMonitor, LuPencil, LuPlus, LuTrash2 } from 'react-icons/lu';
+
+const toQty = (value) => {
+    const n = Number(value);
+    return Number.isFinite(n) ? n : null;
+};
+
+/** 48px thumbnail; opens the larger view when clicked. */
+const Thumb = ({ item, onOpen }) => (
+    item.image ? (
+        <button
+            type="button"
+            onClick={() => onOpen(item)}
+            className="h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-ink-50 ring-1 ring-inset ring-ink-200 transition hover:ring-brand-300"
+            aria-label={`ดูรูป ${item.name}`}
+            title="ดูรูปขนาดใหญ่"
+        >
+            <img src={fileUrl(item.image)} alt="" className="h-full w-full object-cover" loading="lazy" />
+        </button>
+    ) : (
+        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-ink-50 text-ink-300 ring-1 ring-inset ring-ink-200" aria-hidden="true">
+            <LuMonitor className="h-5 w-5" />
+        </span>
+    )
+);
+
+const RowActions = ({ item, onDelete }) => (
+    <div className="flex justify-end gap-1">
+        <Link
+            to={`/editEquipment/${item.id}`}
+            className="icon-btn-brand"
+            aria-label={`แก้ไข ${item.name}`}
+            title="แก้ไขอุปกรณ์"
+        >
+            <LuPencil className="h-[18px] w-[18px]" />
+        </Link>
+        <button
+            type="button"
+            onClick={() => onDelete(item.id)}
+            className="icon-btn-danger"
+            aria-label={`ลบ ${item.name}`}
+            title="ลบอุปกรณ์"
+        >
+            <LuTrash2 className="h-[18px] w-[18px]" />
+        </button>
+    </div>
+);
+
+const itemShape = PropTypes.shape({ id: PropTypes.oneOfType([PropTypes.number, PropTypes.string]), name: PropTypes.string, image: PropTypes.string });
+Thumb.propTypes = { item: itemShape.isRequired, onOpen: PropTypes.func };
+RowActions.propTypes = { item: itemShape.isRequired, onDelete: PropTypes.func };
 
 const ViewManageEquipment = () => {
     const dispatch = useDispatch()
@@ -19,45 +69,67 @@ const ViewManageEquipment = () => {
     const [image, setImage] = useState(null)
     const [preview, setPreview] = useState(null)
     const [id, setId] = useState('')
-    const [zoomImage, setZoomImage] = useState(false)
+    const [zoomItem, setZoomItem] = useState(null)
     const [isOpenModelDelete, setIsOpemModelDelete] = useState(false)
+    const [saving, setSaving] = useState(false)
     const EquipmentData = useSelector((state) => state.equipment.equipnent)
-    console.log(EquipmentData)
 
     useEffect(() => {
         dispatch(fetchEquipment())
     }, [dispatch])
 
-    const handleCreate = async () => {
+    useEffect(() => () => { if (preview) URL.revokeObjectURL(preview) }, [preview])
+
+    const items = Array.isArray(EquipmentData) ? [...EquipmentData].sort((a, b) => a.id - b.id) : []
+    const totalQty = items.reduce((sum, item) => sum + (toQty(item.number) ?? 0), 0)
+
+    const closeCreate = () => {
+        setIsOpenModelCreate(false)
+        setName('')
+        setNumber('')
+        setImage(null)
+        setPreview(null)
+    }
+
+    const handleCreate = async (event) => {
+        event.preventDefault()
+        // Both fields are required (was `!name && !number`, which let one of them be empty)
+        if (!name.trim() || number === '') {
+            ToastifyWarning({ label: 'กรุณากรอกชื่ออุปกรณ์และจำนวนให้ครบ' })
+            return;
+        }
+        const qty = toQty(number)
+        if (qty === null || qty < 0 || !Number.isInteger(qty)) {
+            ToastifyWarning({ label: 'จำนวนต้องเป็นจำนวนเต็มตั้งแต่ 0 ขึ้นไป' })
+            return;
+        }
+        setSaving(true)
         try {
-            if (!name && !number) {
-                ToastifyWarning({ lable: "กรุณาใส่ข้อมูลให้ครบ" })
-                return;
-            }
             const formData = new FormData();
-            formData.append('name', name);
-            formData.append('number', number);
-            formData.append('image', image)
+            formData.append('name', name.trim());
+            formData.append('number', String(qty));
+            if (image) formData.append('image', image)
 
             const response = await dispatch(createEquipment(formData))
             if (response.payload.status === true) {
-                ToastifySuccess({ lable: "เพิ่มข้อมูลสำเร็จ" })
-                setName('')
-                setNumber('')
-                setImage(null)
-                setPreview(null)
-                setIsOpenModelCreate(false)
+                ToastifySuccess({ label: 'เพิ่มอุปกรณ์สำเร็จ' })
+                closeCreate()
                 await dispatch(fetchEquipment())
+            } else {
+                ToastifyWarning({ label: 'เพิ่มอุปกรณ์ไม่สำเร็จ' })
             }
-        } catch (error) {
-            ToastifyError({ lable: "เกิดข้อผิดพลาด" })
+        } catch {
+            ToastifyError({ label: 'เกิดข้อผิดพลาด' })
+        } finally {
+            setSaving(false)
         }
     }
-    const handleIamgeChange = async (e) => {
+
+    const handleIamgeChange = (e) => {
         const file = e.target.files[0];
         if (file) {
-            if (!file.type.startsWith("image/")) {
-                ToastifyWarning({ lable: "กรุณาเลือกไฟล์รูปภาพเท่านั้น" })
+            if (!file.type.startsWith('image/')) {
+                ToastifyWarning({ label: 'กรุณาเลือกไฟล์รูปภาพเท่านั้น' })
                 return;
             }
             setImage(file)
@@ -65,184 +137,191 @@ const ViewManageEquipment = () => {
         }
     };
 
-    const handleOpenModelDelete = (id) => {
-        setId(id)
+    const handleOpenModelDelete = (itemId) => {
+        setId(itemId)
         setIsOpemModelDelete(true)
     }
+
     const handleDelete = async () => {
         try {
             if (!id) {
-                throw new Error('ไม่พบ ID ของนักเรียนที่ต้องการลบ')
+                throw new Error('ไม่พบ ID ของอุปกรณ์ที่ต้องการลบ')
             }
-
             const response = await dispatch(deleteEquipment(id))
-
             if (response.payload.status === true) {
-                ToastifySuccess({ lable: 'ลบข้อมูลสำเร็จ' })
+                ToastifySuccess({ label: 'ลบอุปกรณ์สำเร็จ' })
                 setId('')
                 setIsOpemModelDelete(false)
                 await dispatch(fetchEquipment())
             } else {
-                ToastifyWarning({ lable: "ลบข้อมูลไม่สำเร็จ" })
+                ToastifyWarning({ label: 'ลบอุปกรณ์ไม่สำเร็จ' })
             }
-        } catch (error) {
-            ToastifyError({ lable: "เกิดข้อผิดพลาด" })
+        } catch {
+            ToastifyError({ label: 'เกิดข้อผิดพลาด' })
         }
     }
 
-    const ZoomImage = (id, image) => {
-        setId(id)
-        setImage(image)
-        setZoomImage(true)
-    }
-    return (
-        <DashMasterLayout title={"จัดการอุปกรณ์"}>
-            <div className="flex items-center justify-between p-4 bg-white rounded-lg animate-fade animate-once animate-ease-linear animate-normal animate-fill-forwards">
-                <h1 className='text-lg font-semibold'>อุปกรณ์ในแผนก</h1>
-                <button
-                    onClick={() => setIsOpenModelCreate(true)}
-                    className='px-4 py-2 bg-green-500 rounded-lg shadow-md text-white hover:bg-green-700'
-                >
-                    เพิ่มอุปกรณ์
-                </button>
-            </div>
-            <div className="animate-fade-up animate-once animate-ease-in-out animate-normal animate-fill-forwards">
-                <table className='w-full rounded-lg bg-white shadow-md overflow-hidden'>
-                    <thead className='bg-blue-500 text-white'>
-                        <tr>
-                            <th className='px-5 py-2 font-semibold text-left'>ลำดับ</th>
-                            <th className='px-5 py-2 font-semibold text-left'>รูปภาพ</th>
-                            <th className='px-5 py-2 font-semibold text-left'>รายการ</th>
-                            <th className='px-5 py-2 font-semibold text-left'>จำนวน</th>
-                            <th className='px-5 py-2 font-semibold text-center'>จัดการ</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {EquipmentData && EquipmentData.length > 0 ? (
-                            [...EquipmentData]
-                                .sort((a, b) => a.id - b.id)
-                                .map((data, index) => (
-                                    <tr
-                                        key={data.id}
-                                        className={`${index % 2 === 0 ? "bg-gray-50" : "bg-white"
-                                            } hover:bg-gray-100`}
-                                    >
-                                        <td className='px-5 py-3 text-gray-800 text-sm'>{index + 1}</td>
-                                        <td className='text-center py-3 '>
-                                            <img src={`http://localhost:5000/${data.image}`} alt="image"
-                                                className='w-16 h-16 object-cover'
-                                                onClick={() => ZoomImage(data.id, data.image)}
-                                            />
-                                        </td>
-                                        <td className='px-5 py-3 text-gray-800 text-sm'>{data.name}</td>
-                                        <td className='px-5 py-3 text-gray-800 text-sm'>{data.number}</td>
-                                        <td className='px-5 py-3 text-center flex items-center justify-center gap-x-2'>
-                                            <Link to={`/editEquipment/${data.id}`}>
-                                                <div className='p-2 rounded-lg hover:shadow-lg shadow-md bg-yellow-600 text-white hover:bg-yellow-700 transition-colors duration-300'>
-                                                    <RiEdit2Fill size={20} />
-                                                </div>
-                                            </Link>
-                                            <button
-                                                onClick={() => handleOpenModelDelete(data.id)}
-                                                className='p-2 rounded-lg hover:shadow-lg shadow-md bg-red-600 hover:bg-red-700 text-white transition-colors duration-300'>
-                                                <TiDelete size={20} />
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ))
-                        ) : (
-                            <tr>
-                                <td
-                                    colSpan="5"
-                                    className="text-center py-5 text-gray-600 text-sm"
-                                >
-                                    ไม่มีข้อมูล
-                                </td>
-                            </tr>
-                        )}
-                    </tbody>
-                </table>
-            </div>
-            {isOpenModelCreate === true && (
-                <div
-                    className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50"
-                    onClick={() => setIsOpenModelCreate(false)}
-                >
-                    <div
-                        className="bg-white rounded-lg p-6 w-full max-w-[30rem] sm:w-96 md:w-1/3 shadow-lg animate-jump-in animate-once animate-ease-out animate-normal animate-fill-forwards"
-                        onClick={(e) => e.stopPropagation()} // ป้องกันคลิกปิดเมื่อคลิกภายใน modal
-                    >
-                        <h1 className="text-xl font-bold mb-4">เพิ่มข้อมูลอุปกรณ์</h1>
-                        <div className="flex flex-col gap-4">
-                            <InputComponet
-                                label={"รายการ"}
-                                color={"blue"}
-                                value={name}
-                                OnChange={(value) => setName(value)}
-                                className="w-full"
-                            />
-                            <div className="flex gap-4 w-full">
-                                <InputComponet
-                                    label={"จำนวน"}
-                                    color={"blue"}
-                                    value={number}
-                                    OnChange={(value) => setNumber(value)}
-                                    className="w-full sm:w-[48%]"
-                                />
-                            </div>
-                            <label
-                                htmlFor="file-upload"
-                                className='flex items-center justify-center bg-gray-200  border  border-gray-400'
-                            >
-                                {preview ? (
-                                    <img
-                                        src={preview}
-                                        alt='Image'
-                                        className='w-full oblect-cover rounded-lg'
-                                    />
-                                ) : (
-                                    <BiImageAdd size={100} />
-                                )}
-                                <input
-                                    type="file"
-                                    id="file-upload"
-                                    className='hidden'
-                                    accept='image/*'
-                                    onChange={handleIamgeChange}
-                                />
-                            </label>
-                            <ButtonFullComponent
-                                lable={"เพิ่มข้อมูล"}
-                                color={"blue"}
-                                func={handleCreate}
-                            />
-                        </div>
-                    </div>
-                </div>
-            )}
+    const addButton = (
+        <button type="button" onClick={() => setIsOpenModelCreate(true)} className="btn-primary">
+            <LuPlus className="h-4 w-4" /> เพิ่มอุปกรณ์
+        </button>
+    )
 
-            {zoomImage === true && (
-                <div
-                    className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50"
-                    onClick={() => setZoomImage(false)}
-                >
-                    <div
-                        className="bg-white rounded-lg p-1 w-full  max-w-[40rem] sm:w-96 md:w-1/3 shadow-lg animate-jump-in animate-once animate-ease-out animate-normal animate-fill-forwards"
-                        onClick={(e) => e.stopPropagation()} // ป้องกันคลิกปิดเมื่อคลิกภายใน modal
-                    >
-                        <div className="flex flex-col gap-4 ">
-                            <img src={`http://localhost:5000/${image}`} alt=""
-                                className='w-full h-auto max-h-[30rem] object-cover'
+    return (
+        <DashMasterLayout
+            title="จัดการอุปกรณ์"
+            description={`ทั้งหมด ${items.length.toLocaleString('th-TH')} รายการ · รวม ${totalQty.toLocaleString('th-TH')} ชิ้น`}
+            actions={addButton}
+        >
+            <section className="card animate-fade-up animate-once animate-duration-300 animate-ease-out">
+                {items.length === 0 ? (
+                    <div className="empty-state">
+                        <LuMonitor className="h-8 w-8 text-ink-300" />
+                        <p className="font-medium text-ink-700">ยังไม่มีอุปกรณ์ในแผนก</p>
+                        <p>เพิ่มรายการอุปกรณ์พร้อมจำนวนและรูปภาพ</p>
+                        <div className="mt-2">{addButton}</div>
+                    </div>
+                ) : (
+                    <>
+                        {/* Table: tablet and up */}
+                        <div className="table-wrap md:hidden">
+                            <table className="data-table">
+                                <thead>
+                                    <tr>
+                                        <th className="w-14 text-right">ลำดับ</th>
+                                        <th className="w-20">รูปภาพ</th>
+                                        <th>รายการ</th>
+                                        <th className="text-right">จำนวน</th>
+                                        <th className="w-28 text-right">จัดการ</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {items.map((item, index) => (
+                                        <tr key={item.id}>
+                                            <td className="num text-right text-ink-500">{index + 1}</td>
+                                            <td className="py-2"><Thumb item={item} onOpen={setZoomItem} /></td>
+                                            <td className="font-medium text-ink-900">{item.name}</td>
+                                            <td className="num whitespace-nowrap text-right">
+                                                {toQty(item.number)?.toLocaleString('th-TH') ?? item.number}
+                                                <span className="ml-1 text-ink-500">ชิ้น</span>
+                                            </td>
+                                            <td className="py-2"><RowActions item={item} onDelete={handleOpenModelDelete} /></td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {/* List: phones */}
+                        <ul className="hidden divide-y divide-ink-100 md:block">
+                            {items.map((item) => (
+                                <li key={item.id} className="flex items-center gap-3 px-4 py-3">
+                                    <Thumb item={item} onOpen={setZoomItem} />
+                                    <div className="min-w-0 flex-1">
+                                        <p className="truncate font-medium text-ink-900">{item.name}</p>
+                                        <p className="num text-sm text-ink-500">
+                                            {toQty(item.number)?.toLocaleString('th-TH') ?? item.number} ชิ้น
+                                        </p>
+                                    </div>
+                                    <RowActions item={item} onDelete={handleOpenModelDelete} />
+                                </li>
+                            ))}
+                        </ul>
+                    </>
+                )}
+            </section>
+
+            {/* Create */}
+            <Modal
+                isOpen={isOpenModelCreate}
+                onClose={closeCreate}
+                title="เพิ่มอุปกรณ์"
+                description="ระบุชื่อ จำนวน และรูปภาพของอุปกรณ์"
+                footer={
+                    <>
+                        <button type="button" className="btn-secondary" onClick={closeCreate}>ยกเลิก</button>
+                        <button type="submit" form="create-equipment-form" className="btn-primary" disabled={saving}>
+                            {saving ? 'กำลังบันทึก…' : 'บันทึก'}
+                        </button>
+                    </>
+                }
+            >
+                <form id="create-equipment-form" onSubmit={handleCreate} noValidate className="space-y-4">
+                    <div className="grid grid-cols-[minmax(0,1fr)_140px] gap-4 sm:grid-cols-1">
+                        <InputComponet
+                            label="ชื่ออุปกรณ์"
+                            value={name}
+                            OnChange={(value) => setName(value)}
+                            placeholder="เช่น โปรเจกเตอร์"
+                            required
+                        />
+                        <div>
+                            <label htmlFor="create-equipment-qty" className="label">
+                                จำนวน (ชิ้น)<span className="ml-0.5 text-red-600" aria-hidden="true">*</span>
+                            </label>
+                            <input
+                                id="create-equipment-qty"
+                                type="number"
+                                min="0"
+                                step="1"
+                                inputMode="numeric"
+                                className="field num"
+                                value={number}
+                                onChange={(e) => setNumber(e.target.value)}
+                                required
                             />
                         </div>
                     </div>
-                </div>
-            )}
+                    <div>
+                        <span className="label">รูปภาพ</span>
+                        <label htmlFor="create-equipment-image" className={`file-drop ${preview ? 'p-2' : ''}`}>
+                            {preview ? (
+                                <>
+                                    <img src={preview} alt="ตัวอย่างรูปที่เลือก" className="max-h-56 w-full rounded-md bg-white object-contain" />
+                                    <span className="text-[13px]">คลิกเพื่อเลือกรูปอื่น</span>
+                                </>
+                            ) : (
+                                <>
+                                    <LuImagePlus className="h-7 w-7 text-ink-400" />
+                                    <span className="font-medium text-ink-700">คลิกเพื่อเลือกรูปภาพ</span>
+                                    <span className="text-[13px]">ไฟล์ PNG หรือ JPG</span>
+                                </>
+                            )}
+                            <input
+                                type="file"
+                                id="create-equipment-image"
+                                className="sr-only"
+                                accept="image/*"
+                                onChange={handleIamgeChange}
+                            />
+                        </label>
+                    </div>
+                </form>
+            </Modal>
+
+            {/* Larger image */}
+            <Modal
+                isOpen={Boolean(zoomItem)}
+                onClose={() => setZoomItem(null)}
+                title={zoomItem?.name}
+                description={zoomItem ? `จำนวน ${zoomItem.number} ชิ้น` : undefined}
+                size="lg"
+            >
+                {zoomItem?.image && (
+                    <img
+                        src={fileUrl(zoomItem.image)}
+                        alt={zoomItem.name}
+                        className="max-h-[60vh] w-full rounded-lg bg-ink-50 object-contain"
+                    />
+                )}
+            </Modal>
 
             <ConfirmDeleteModal
                 isOpen={isOpenModelDelete}
                 onClose={() => setIsOpemModelDelete(false)}
                 onConfirm={handleDelete}
+                title="ลบอุปกรณ์"
+                message="ลบแล้วจะกู้คืนไม่ได้ ต้องการลบอุปกรณ์รายการนี้ใช่ไหม?"
             />
         </DashMasterLayout>
     )

@@ -43,7 +43,7 @@ exports.editTeacher = async (req, res) => {
         }
 
         // ลบรูปภาพเก่าหากมี
-        if (existingTeacher.TeacherImage) {
+        if (TeacherImage && existingTeacher.TeacherImage) { // ลบรูปเก่าเฉพาะเมื่ออัปโหลดรูปใหม่
             const oldImagePath = existingTeacher.TeacherImage;
             if (fs.existsSync(oldImagePath)) {
                 fs.unlinkSync(oldImagePath);
@@ -56,7 +56,7 @@ exports.editTeacher = async (req, res) => {
             data: {
                 fullName,
                 position,
-                TeacherImage, // อัปเดตรูปภาพใหม่
+                TeacherImage: TeacherImage ?? existingTeacher.TeacherImage, // ไม่มีรูปใหม่ = ใช้รูปเดิม
             },
         });
 

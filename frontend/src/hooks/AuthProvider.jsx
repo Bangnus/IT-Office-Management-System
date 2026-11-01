@@ -17,11 +17,13 @@ const AuthProvider = ({ children }) => {
     const SiginAction = async (data) => {
         try {
             const response = await dispatch(authenticateUser(data));
-            if (response.payload.status === true) {
+            if (response.payload?.status === true) {
                 return { status: true };
             }
+            // No payload means the request itself failed (server unreachable), not wrong credentials
+            return { status: false, message: response.payload?.error, offline: !response.payload };
         } catch (error) {
-            return console.log(error);
+            return { status: false, message: error?.message, offline: true };
         }
     };
 

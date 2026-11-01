@@ -45,7 +45,7 @@ exports.editEquipment = async (req, res) => {
             })
         }
         // let image = existingequipment.image;
-        if (existingequipment.image) {
+        if (image && existingequipment.image) { // ลบรูปเก่าเฉพาะเมื่ออัปโหลดรูปใหม่
             const oldImage = existingequipment.image;
             if (fs.existsSync(oldImage)) {
                 fs.unlinkSync(oldImage);
@@ -59,7 +59,7 @@ exports.editEquipment = async (req, res) => {
             data: {
                 name,
                 number,
-                image
+                image: image ?? existingequipment.image, // ไม่มีรูปใหม่ = ใช้รูปเดิม
             }
         })
         return res.status(200).json({

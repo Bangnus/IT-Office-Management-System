@@ -1,160 +1,170 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import DashMasterLayout from '../../layouts/master';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchStudentID, fetchStudent, createStudent, deleteStudent } from '../../../../slicers/studentSlicer';
+import { fetchStudentID, createStudent, deleteStudent } from '../../../../slicers/studentSlicer';
 import { fetchImageID, uploadimage } from '../../../../slicers/imageSlicer';
+import { fetchClassRoomID, fetchclassVC } from '../../../../slicers/classSlicer';
 import InputComponet from '../../../../components/content-input/input-full';
 import { ToastifySuccess, ToastifyError, ToastifyWarning } from '../../../../components/content-alert/toastify';
-import ButtonFullComponent from '../../../../components/content-buttons/full-button';
-import { RiEdit2Fill } from "react-icons/ri";
-import { TiDelete } from "react-icons/ti";
-import { MdPersonAddAlt1 } from "react-icons/md";
 import ConfirmDeleteModal from '../../../../components/content-alert/ConfirmDeleteModal';
-import { BiImageAdd } from "react-icons/bi";
+import Modal from '../../../../components/content-alert/Modal';
+import { fileUrl } from '../../../../hooks/fileUrl';
+import { LuArrowLeft, LuImagePlus, LuPencil, LuSearch, LuSearchX, LuTrash2, LuUpload, LuUserPlus, LuUsers } from 'react-icons/lu';
+
+// Level pages, matched against the vc name (e.g. "ปวช.2")
+const LEVELS = [
+    { key: 'ปวช', path: '/home/Vocational-Certificate', label: 'นักเรียน ปวช.' },
+    { key: 'ปวส', path: '/home/Higher-Vocational-Certificate', label: 'นักเรียน ปวส.' },
+    { key: 'ป.ตรี', path: '/home/Bachelors-Degree', label: 'นักเรียน ป.ตรี' },
+];
+
+const backLinkClass = 'mb-2 inline-flex items-center gap-1 text-sm text-ink-500 hover:text-brand-700';
 
 const ViewClassStudent = () => {
-    const { id } = useParams(); // ดึง id ของคลาสจาก URL
+    const { id } = useParams(); // id ของห้อง (classroomNumber)
     const dispatch = useDispatch();
-    const navigation = useNavigate();
-
+    const navigate = useNavigate();
 
     const [studentID, setStudentID] = useState('');
     const [firstname, setFirstname] = useState('');
     const [lastname, setLastname] = useState('');
-    const [classroom, setClassroom] = useState(id);  // ตั้งค่า classroom ตาม id
-    const [isOpenModel, setIsOpenModel] = useState(false)
-    const [isOpenModelImage, setIsOpenModelImage] = useState(false)
-    const [className, setClassName] = useState('');
-    const [classRoom, setClassRoom] = useState('');
-    const [isOpenModelDelete, setIsOpenModelDelete] = useState(false)
-    const [RoomID, setRoomID] = useState('')
-    const [advisor, setAdvisor] = useState('')
-    //Image
-    const [upImage, setUpImage] = useState(null)
-    const [image, setImage] = useState(null);
+    const [isOpenModel, setIsOpenModel] = useState(false);
+    const [isOpenModelImage, setIsOpenModelImage] = useState(false);
+    const [isOpenModelDelete, setIsOpenModelDelete] = useState(false);
+    const [deleteID, setDeleteID] = useState('');
+    const [query, setQuery] = useState('');
+    const [saving, setSaving] = useState(false);
+    const [uploading, setUploading] = useState(false);
+    // Image
+    const [upImage, setUpImage] = useState(null);
     const [preview, setPreview] = useState(null);
-    const [classroomNumberID, setClassroomNumberID] = useState(id)
 
-    const StudentData = useSelector((state) => state.student.student); // ดึงข้อมูลนักเรียนจาก Redux
-    const FetchImage = useSelector((state) => state.image.image)
-    console.log(StudentData)
-    // console.log(classRoom)
-    // console.log("Image", image)
-    // console.log("preview", preview)
-    useEffect(() => {
-        if (StudentData?.length > 0) {
-            // ดึง className ของนักเรียนคนแรก
-            const className = StudentData[0]?.classroomNumber?.className || "ไม่มีข้อมูล";
-            setClassName(className);
-        } else (
-            setClassName('')
-        )
-        if (StudentData?.length > 0) {
-            // ดึง className ของนักเรียนคนแรก
-            const advisor = StudentData[0]?.classroomNumber?.advisor || "ไม่มีข้อมูล";
-            setAdvisor(advisor);
-        } else (
-            setAdvisor('')
-        )
-    }, [StudentData]);
+    const StudentData = useSelector((state) => state.student.student);
+    const FetchImage = useSelector((state) => state.image.image);
+    const classList = useSelector((state) => state.class.classroom);
+    const vcList = useSelector((state) => state.class.class);
 
     useEffect(() => {
-
-        if (StudentData?.length > 0) {
-            // ดึง className ของนักเรียนคนแรก
-            const classroom = StudentData[0]?.classroomNumber?.vc?.classroom || "ไม่มีข้อมูล";
-            setClassRoom(classroom);
-        } else (
-            setClassRoom('')
-        )
-    }, [StudentData]);
-
-
-    useEffect(() => {
-        if (FetchImage.length > 0) {
-            const image = FetchImage[0]?.image
-            setImage(image)
-        }
-    }, [FetchImage])
-
-
-    useEffect(() => {
-        dispatch(fetchStudentID(id)); // ดึงข้อมูลนักเรียนทั้งหมด
-        dispatch(fetchImageID(id))
+        dispatch(fetchStudentID(id));
+        dispatch(fetchImageID(id));
+        dispatch(fetchClassRoomID(id)); // ชื่อห้อง/อาจารย์ที่ปรึกษา แม้ห้องยังไม่มีนักเรียน
+        dispatch(fetchclassVC());
     }, [dispatch, id]);
 
-    useEffect(() => {
-        if (isOpenModel === true) {
-            document.body.style.overflow = "hidden";
-        } else {
-            document.body.style.overflow = "auto";
-        }
-    }, [isOpenModel]);
+    // Only use records that belong to this class (the slices are shared with other pages)
+    const students = useMemo(
+        () => (Array.isArray(StudentData) ? StudentData.filter((s) => String(s.classroom) === String(id)) : []),
+        [StudentData, id]
+    );
+    const photo = Array.isArray(FetchImage)
+        ? FetchImage.find((img) => String(img.classroomNumberID) === String(id))?.image
+        : null;
 
+    const classInfo =
+        students[0]?.classroomNumber ||
+        (Array.isArray(classList) ? classList.find((c) => String(c.id) === String(id)) : null) ||
+        null;
+    const className = classInfo?.className || '';
+    const advisor = classInfo?.advisor || '';
+    const vcName =
+        classInfo?.vc?.classroom ||
+        (Array.isArray(vcList) ? vcList.find((v) => v.id === classInfo?.vcID)?.classroom : '') ||
+        '';
+    const level = LEVELS.find((l) => vcName.includes(l.key) || className.includes(l.key));
+
+    const sortedStudents = useMemo(
+        () => [...students].sort((a, b) => String(a.studentID ?? '').localeCompare(String(b.studentID ?? ''))),
+        [students]
+    );
+    const q = query.trim().toLowerCase();
+    const visibleStudents = q
+        ? sortedStudents.filter((s) =>
+            [s.studentID, s.firstname, s.lastname, `${s.firstname ?? ''} ${s.lastname ?? ''}`]
+                .some((v) => String(v ?? '').toLowerCase().includes(q)))
+        : sortedStudents;
+
+    // Lock page scroll while a form dialog is open
     useEffect(() => {
-        if (isOpenModelImage === true) {
-            document.body.style.overflow = "hidden"
-        } else (
-            document.body.style.overflow = "auto"
-        )
-    }, [isOpenModelImage])
+        if (!isOpenModel && !isOpenModelImage) return;
+        document.body.style.overflow = 'hidden';
+        return () => { document.body.style.overflow = ''; };
+    }, [isOpenModel, isOpenModelImage]);
+
+    // Free the preview object URL when it changes
+    useEffect(() => () => { if (preview) URL.revokeObjectURL(preview); }, [preview]);
+
+    const closeCreate = () => {
+        setIsOpenModel(false);
+        setStudentID('');
+        setFirstname('');
+        setLastname('');
+    };
+
+    const closeUpload = () => {
+        setIsOpenModelImage(false);
+        setUpImage(null);
+        setPreview(null);
+    };
 
     const handleCreatetudent = async (event) => {
         event.preventDefault();
+        if (!studentID.trim() || !firstname.trim() || !lastname.trim()) {
+            ToastifyWarning({ label: 'กรุณากรอกรหัสนักศึกษา ชื่อ และนามสกุลให้ครบ' });
+            return;
+        }
+        setSaving(true);
         try {
             const data = {
-                studentID,
-                firstname,
-                lastname,
-                classroom,
+                studentID: studentID.trim(),
+                firstname: firstname.trim(),
+                lastname: lastname.trim(),
+                classroom: id,
             };
-            const response = await dispatch(createStudent(data))
+            const response = await dispatch(createStudent(data));
             if (response.payload.status === true) {
-                ToastifySuccess({ lable: 'เพิ่มข้อมูลสำเร็จ' });
-                setIsOpenModel(false)
-                await dispatch(fetchStudentID(id))
-                setStudentID('')
-                setFirstname('')
-                setLastname('')
-            } else (
-                ToastifyWarning({ lable: 'เพิ่มข้อมูลไม่สำเร็จ' })
-            )
-        } catch (error) {
-            ToastifyError({ lable: 'เกิดข้อผิดพลาดในการเพิ่มข้อมูล' });
+                ToastifySuccess({ label: 'เพิ่มนักเรียนสำเร็จ' });
+                closeCreate();
+                await dispatch(fetchStudentID(id));
+            } else {
+                ToastifyWarning({ label: 'เพิ่มนักเรียนไม่สำเร็จ รหัสนักศึกษานี้อาจมีอยู่แล้ว' });
+            }
+        } catch {
+            ToastifyError({ label: 'เกิดข้อผิดพลาดในการเพิ่มข้อมูล' });
+        } finally {
+            setSaving(false);
         }
     };
 
-    const handleOpenModelDelete = (id) => {
-        setRoomID(id)
-        setIsOpenModelDelete(true)
-    }
+    const handleOpenModelDelete = (studentId) => {
+        setDeleteID(studentId);
+        setIsOpenModelDelete(true);
+    };
 
     const handleDelete = async () => {
         try {
-            if (!RoomID) {
-                throw new Error('ไม่พบ ID ของนักเรียนที่ต้องการลบ')
+            if (!deleteID) {
+                throw new Error('ไม่พบ ID ของนักเรียนที่ต้องการลบ');
             }
-            const rseponse = await dispatch(deleteStudent(RoomID))
-
-            if (rseponse.payload.status === true) {
-                ToastifySuccess({ lable: "ลบข้อมูลสำเร็จ" })
-                setRoomID('')
-                setIsOpenModelDelete(false)
-                await dispatch(fetchStudentID(id))
-            } else (
-                ToastifyError({ lable: "ลบข้อมูลไม่สำเร็จ" })
-            )
-        } catch (error) {
-            ToastifyError({ lable: "เกิดข้อผิดพลาด" })
+            const response = await dispatch(deleteStudent(deleteID));
+            if (response.payload.status === true) {
+                ToastifySuccess({ label: 'ลบข้อมูลสำเร็จ' });
+                setDeleteID('');
+                setIsOpenModelDelete(false);
+                await dispatch(fetchStudentID(id));
+            } else {
+                ToastifyError({ label: 'ลบข้อมูลไม่สำเร็จ' });
+            }
+        } catch {
+            ToastifyError({ label: 'เกิดข้อผิดพลาด' });
         }
-    }
+    };
 
-    const handleImageChange = async (e) => {
+    const handleImageChange = (e) => {
         const file = e.target.files[0];
         if (file) {
-            if (!file.type.startsWith("image/")) {
-                ToastifyWarning({ label: "กรุณาเลือกไฟล์รูปภาพเท่านั้น" });
+            if (!file.type.startsWith('image/')) {
+                ToastifyWarning({ label: 'กรุณาเลือกไฟล์รูปภาพเท่านั้น' });
                 return;
             }
             setUpImage(file);
@@ -163,253 +173,300 @@ const ViewClassStudent = () => {
     };
 
     const handleUpload = async () => {
+        if (!upImage) {
+            ToastifyWarning({ label: 'กรุณาเลือกรูปภาพก่อนอัปโหลด' });
+            return;
+        }
+        setUploading(true);
         try {
-            if (!upImage) {
-                ToastifyWarning({ lable: "กรุณาเลือกภาพก่อนอัปโหลด" });
-                return;
-            }
             const formData = new FormData();
-            formData.append("image", upImage); // เพิ่มไฟล์รูปภาพใน formData
-            formData.append("classroomNumberID", classroomNumberID); // เพิ่ม classroomNumberID ใน formData
+            formData.append('image', upImage);
+            formData.append('classroomNumberID', id);
 
-            const response = await dispatch(uploadimage(formData)); // ส่งข้อมูลไปที่ backend
+            const response = await dispatch(uploadimage(formData));
             if (response.payload.status === true) {
-                ToastifySuccess({ lable: "เพิ่มรูปภาพสำเร็จ" });
-                setUpImage(null); // รีเซ็ตข้อมูลภาพ
-                setPreview(null); // รีเซ็ตการแสดงตัวอย่าง
-                setIsOpenModelImage(false); // ปิด modal
+                ToastifySuccess({ label: 'อัปโหลดรูปห้องเรียนสำเร็จ' });
+                closeUpload();
                 await dispatch(fetchImageID(id));
             } else {
-                ToastifyWarning({ lable: "อัปโหลดรูปภาพไม่สำเร็จ" });
+                ToastifyWarning({ label: 'อัปโหลดรูปภาพไม่สำเร็จ' });
             }
-        } catch (error) {
-            ToastifyError({ lable: "เกิดข้อผิดพลาด" });
+        } catch {
+            ToastifyError({ label: 'เกิดข้อผิดพลาด' });
+        } finally {
+            setUploading(false);
         }
     };
 
+    const back = level ? (
+        <Link to={level.path} className={backLinkClass}>
+            <LuArrowLeft className="h-4 w-4" /> กลับไปหน้า{level.label}
+        </Link>
+    ) : (
+        <button type="button" onClick={() => navigate(-1)} className={backLinkClass}>
+            <LuArrowLeft className="h-4 w-4" /> ย้อนกลับ
+        </button>
+    );
+
+    const description = [
+        advisor && `อาจารย์ที่ปรึกษา: ${advisor}`,
+        `นักเรียน ${students.length.toLocaleString('th-TH')} คน`,
+    ].filter(Boolean).join(' · ');
+
+    const actions = (
+        <>
+            <button type="button" className="btn-secondary" onClick={() => setIsOpenModelImage(true)}>
+                <LuImagePlus className="h-4 w-4" /> อัปโหลดรูปห้อง
+            </button>
+            <button type="button" className="btn-primary" onClick={() => setIsOpenModel(true)}>
+                <LuUserPlus className="h-4 w-4" /> เพิ่มนักเรียน
+            </button>
+        </>
+    );
+
     return (
-        <DashMasterLayout title={`${classRoom} ${className}`}>
-            <div className="animate-fade-down animate-once animate-ease-out animate-normal animate-fill-forwards ">
-                <div className="bg-white shadow-lg p-2">
-                    <div className="flex items-center justify-center ">
-                        {image ? (
+        <DashMasterLayout
+            title={className ? `ห้อง ${className}` : 'ห้องเรียน'}
+            description={description}
+            actions={actions}
+            back={back}
+        >
+            <div className="grid grid-cols-[minmax(0,1fr)_320px] items-start gap-6 animate-fade-up animate-once animate-duration-300 animate-ease-out xl:grid-cols-[minmax(0,1fr)_280px] lg:grid-cols-1 md:gap-4">
+                {/* Class photo: right column on desktop, above the list on smaller screens, side by side on tablets */}
+                <aside className="card col-start-2 row-start-1 overflow-hidden lg:col-start-1">
+                    {photo ? (
+                        <div className="flex flex-col lg:flex-row lg:items-center sm:flex-col sm:items-stretch">
                             <img
-                                src={`http://localhost:5000/${image}`}
-                                alt={`รูปภาพของห้องเรียน ${className}`}
-                                className="mb-5 w-full h-[580px] object-cover rounded-lg border-4 border-gray-200 shadow-lg transition-transform duration-300 ease-in-out transform hover:scale-105 hover:shadow-xl"
+                                src={fileUrl(photo)}
+                                alt={`รูปห้องเรียน ${className}`}
+                                className="aspect-[16/9] w-full bg-ink-100 object-cover lg:w-64 lg:shrink-0 sm:w-full"
                             />
-                        ) : (
-                            <p></p>
-                        )}
-
-
-                    </div>
-                    <div className="flex  py-2 items-center justify-between">
-                        <div className="flex items-center">
-                            <h1 className='text-lg font-semibold p-2'>ข้อมูลนักเรียน:{classRoom} {className}</h1>
-                            <span className='text-lg font-semibold p-2'>อาจารย์ที่ปรึกษา:{advisor}</span>
+                            <div className="flex items-center justify-between gap-3 px-4 py-3 lg:flex-1">
+                                <div className="min-w-0">
+                                    <p className="text-sm font-medium text-ink-900">รูปห้องเรียน</p>
+                                    <p className="text-[13px] text-ink-500">อัปโหลดรูปใหม่เพื่อแทนรูปเดิม</p>
+                                </div>
+                                <button type="button" className="btn-secondary btn-sm" onClick={() => setIsOpenModelImage(true)}>
+                                    <LuUpload className="h-4 w-4" /> เปลี่ยนรูป
+                                </button>
+                            </div>
                         </div>
-                        <div className="flex items-center gap-x-2">
-                            {/* <label
-                                htmlFor="file-upload"
-                                className="flex items-center justify-center px-6 py-2 text-white bg-blue-600 rounded-lg cursor-pointer hover:bg-blue-700"
-                            >
-                                เพิ่มรูปภาพ
-                                <input
-                                    type="file"
-                                    id="file-upload"
-                                    accept='imagr/*'
-                                    className='hidden'
-                                />
-                            </label> */}
+                    ) : (
+                        <div className="p-4">
                             <button
-                                className="flex items-center gap-2 bg-green-500 hover:bg-green-600 rounded-lg px-6 py-2 text-white font-semibold"
+                                type="button"
                                 onClick={() => setIsOpenModelImage(true)}
+                                className="file-drop aspect-[16/9] lg:aspect-auto lg:flex-row lg:gap-3 lg:py-4"
                             >
-                                เพิ่มรูปภาพ
-                                <BiImageAdd size={20} />
-                            </button>
-                            <button
-                                className="flex items-center gap-2 bg-green-500 hover:bg-green-600 rounded-lg px-6 py-2 text-white font-semibold"
-                                onClick={() => setIsOpenModel(true)}
-                            >
-                                เพิ่มข้อมูล
-                                <MdPersonAddAlt1 size={20} />
+                                <LuImagePlus className="h-6 w-6 text-ink-400" />
+                                <span className="lg:text-left">
+                                    <span className="block font-medium text-ink-700">ยังไม่มีรูปห้องเรียน</span>
+                                    <span className="block text-[13px]">คลิกเพื่ออัปโหลดรูปห้อง</span>
+                                </span>
                             </button>
                         </div>
+                    )}
+                </aside>
 
+                {/* Student list */}
+                <section className="card col-start-1 row-start-1 min-w-0 lg:row-start-2">
+                    <div className="card-head">
+                        <div className="flex items-center gap-2">
+                            <h2 className="card-title">รายชื่อนักเรียน</h2>
+                            <span className="badge-neutral num">{students.length}</span>
+                        </div>
+                        {students.length > 0 && (
+                            <div className="relative w-64 md:w-full">
+                                <LuSearch className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-400" aria-hidden="true" />
+                                <input
+                                    type="search"
+                                    value={query}
+                                    onChange={(e) => setQuery(e.target.value)}
+                                    placeholder="ค้นหารหัสหรือชื่อนักเรียน"
+                                    aria-label="ค้นหานักเรียน"
+                                    className="field min-h-[38px] pl-9 text-sm"
+                                />
+                            </div>
+                        )}
                     </div>
-                    <div className="">
-                        <table className="w-full rounded-lg bg-white overflow-hidden ">
-                            <thead className="text-white bg-blue-500">
-                                <tr>
-                                    <th className="w-1/4 px-5 py-2 text-left font-semibold">รหัสนักเรียน</th>
-                                    <th className="w-1/4 px-5 py-2 text-left font-semibold">ชื่อ</th>
-                                    <th className="w-1/4 px-5 py-2 text-left font-semibold">นามสกุล</th>
-                                    <th className="w-1/4 px-5 py-2 text-center font-semibold">จัดการ</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {StudentData.length > 0 ? (
-                                    [...StudentData]
-                                        .sort((a, b) => a.studentID.localeCompare(b.studentID))
-                                        .map((student) => (
-                                            <tr
-                                                key={student.id}
-                                                className="border-b hover:bg-gray-200 transition-colors duration-300"
-                                            >
-                                                <td className="px-6 py-2 text-left truncate">{student.studentID}</td>
-                                                <td className="px-6 py-2 text-left truncate">{student.firstname}</td>
-                                                <td className="px-6 py-2 text-left truncate">{student.lastname}</td>
-                                                <td className="flex justify-center gap-x-2 p-2">
-                                                    <Link to={`/editStudent/${student.id}`}>
-                                                        <div className="p-2 bg-yellow-600 rounded-md text-white hover:bg-yellow-700 transition-colors duration-300">
-                                                            <RiEdit2Fill size={20} />
-                                                        </div>
-                                                    </Link>
-                                                    <button className="p-2 bg-red-600 rounded-md text-white hover:bg-red-700 transition-colors duration-300 cursor-pointer"
-                                                        onClick={() => handleOpenModelDelete(student.id)}
-                                                    >
-                                                        <TiDelete size={20} />
-                                                    </button>
+
+                    {students.length === 0 ? (
+                        <div className="empty-state">
+                            <LuUsers className="h-8 w-8 text-ink-300" />
+                            <p className="font-medium text-ink-700">ยังไม่มีนักเรียนในห้องนี้</p>
+                            <p>เพิ่มรายชื่อนักเรียนเพื่อเริ่มต้นใช้งาน</p>
+                            <button type="button" className="btn-primary mt-2" onClick={() => setIsOpenModel(true)}>
+                                <LuUserPlus className="h-4 w-4" /> เพิ่มนักเรียน
+                            </button>
+                        </div>
+                    ) : visibleStudents.length === 0 ? (
+                        <div className="empty-state">
+                            <LuSearchX className="h-8 w-8 text-ink-300" />
+                            <p>ไม่พบนักเรียนที่ตรงกับ “{query.trim()}”</p>
+                            <button type="button" className="btn-ghost btn-sm" onClick={() => setQuery('')}>ล้างการค้นหา</button>
+                        </div>
+                    ) : (
+                        <>
+                        <div className="table-wrap md:hidden">
+                            <table className="data-table">
+                                <thead>
+                                    <tr>
+                                        <th className="w-14 text-right">ลำดับ</th>
+                                        <th>รหัสนักศึกษา</th>
+                                        <th>ชื่อ</th>
+                                        <th>นามสกุล</th>
+                                        <th className="w-28 text-right">จัดการ</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {visibleStudents.map((student, index) => {
+                                        const fullName = `${student.firstname ?? ''} ${student.lastname ?? ''}`.trim();
+                                        return (
+                                            <tr key={student.id}>
+                                                <td className="num text-right text-ink-500">{index + 1}</td>
+                                                <td className="num font-medium text-ink-900">{student.studentID}</td>
+                                                <td>{student.firstname}</td>
+                                                <td>{student.lastname}</td>
+                                                <td className="py-2">
+                                                    <div className="flex justify-end gap-1">
+                                                        <Link
+                                                            to={`/editStudent/${student.id}`}
+                                                            className="icon-btn-brand"
+                                                            aria-label={`แก้ไขข้อมูล ${fullName}`}
+                                                            title="แก้ไขข้อมูล"
+                                                        >
+                                                            <LuPencil className="h-[18px] w-[18px]" />
+                                                        </Link>
+                                                        <button
+                                                            type="button"
+                                                            className="icon-btn-danger"
+                                                            onClick={() => handleOpenModelDelete(student.id)}
+                                                            aria-label={`ลบ ${fullName}`}
+                                                            title="ลบนักเรียน"
+                                                        >
+                                                            <LuTrash2 className="h-[18px] w-[18px]" />
+                                                        </button>
+                                                    </div>
                                                 </td>
                                             </tr>
-                                        ))
-                                ) : (
-                                    <tr>
-                                        <td colSpan="4" className="text-center py-4 text-gray-500">
-                                            ไม่มีข้อมูล
-                                        </td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </table>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
 
-                    </div>
-                </div>
-                {/* แสดงข้อมูลนักเรียนที่เพิ่ม */}
-                {/* <div className="mt-6">
-                    <h2 className="text-lg font-semibold">ข้อมูลนักเรียน</h2>
-                    <div className="space-y-2">
-                        {StudentData.map((student) => (
-                            <div key={student.id} className="p-4 border border-gray-200 rounded-md">
-                                <p><strong>รหัสนักเรียน:</strong> {student.studentID}</p>
-                                <p><strong>ชื่อ:</strong> {student.firstname} {student.lastname}</p>
-                                <p><strong>ห้อง:</strong> {student.classroom}</p>
-                                {student.image && (
-                                    <div>
-                                        <strong>รูปภาพ:</strong>
-                                        <img src={`http://localhost:5000/${student.image}`} alt="Student Image" className="mt-2 w-[20%] h-[10%] object-cover rounded" />
-                                    </div>
-                                )}
-                            </div>
-                        ))}
-                    </div>
-                </div> */}
-
-
-
-
-
-
-
+                        {/* Phones: stacked list so the actions stay in view */}
+                        <ul className="hidden divide-y divide-ink-100 md:block">
+                            {visibleStudents.map((student, index) => {
+                                const fullName = `${student.firstname ?? ''} ${student.lastname ?? ''}`.trim();
+                                return (
+                                    <li key={student.id} className="flex items-center gap-3 py-2.5 pl-4 pr-2">
+                                        <span className="num w-6 shrink-0 text-right text-sm text-ink-400">{index + 1}</span>
+                                        <div className="min-w-0 flex-1">
+                                            <p className="truncate font-medium text-ink-900">{fullName || '-'}</p>
+                                            <p className="num text-[13px] text-ink-500">{student.studentID}</p>
+                                        </div>
+                                        <Link
+                                            to={`/editStudent/${student.id}`}
+                                            className="icon-btn-brand"
+                                            aria-label={`แก้ไขข้อมูล ${fullName}`}
+                                            title="แก้ไขข้อมูล"
+                                        >
+                                            <LuPencil className="h-[18px] w-[18px]" />
+                                        </Link>
+                                        <button
+                                            type="button"
+                                            className="icon-btn-danger"
+                                            onClick={() => handleOpenModelDelete(student.id)}
+                                            aria-label={`ลบ ${fullName}`}
+                                            title="ลบนักเรียน"
+                                        >
+                                            <LuTrash2 className="h-[18px] w-[18px]" />
+                                        </button>
+                                    </li>
+                                );
+                            })}
+                        </ul>
+                        </>
+                    )}
+                </section>
             </div>
 
-            {/* model */}
-            {isOpenModel === true && (
-                <div
-                    className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50"
-                    onClick={() => setIsOpenModel(false)}
-                >
-                    <div
-                        className="bg-white rounded-lg p-6 w-full max-w-[30rem] sm:w-96 md:w-1/3 shadow-lg animate-jump-in animate-once animate-ease-out animate-normal animate-fill-forwards"
-                        onClick={(e) => e.stopPropagation()} // ป้องกันคลิกปิดเมื่อคลิกภายใน modal
-                    >
-                        <h1 className="text-xl font-bold mb-4">เพิ่มข้อมูลนักเรียน</h1>
-                        <div className="flex flex-col gap-4">
-                            <InputComponet
-                                label={"รหัสนักเรียน"}
-                                color={"blue"}
-                                value={studentID}
-                                OnChange={(value) => setStudentID(value)}
-                                className="w-full"
-                            />
-                            <div className="flex gap-4 w-full">
-                                <InputComponet
-                                    label={"ชื่อ"}
-                                    color={"blue"}
-                                    value={firstname}
-                                    OnChange={(value) => setFirstname(value)}
-                                    className="w-full sm:w-[48%]"
-                                />
-                                <InputComponet
-                                    label={"นามสกุล"}
-                                    color={"blue"}
-                                    value={lastname}
-                                    OnChange={(value) => setLastname(value)}
-                                    className="w-full sm:w-[48%]"
-                                />
-                            </div>
-                            <ButtonFullComponent
-                                lable={"เพิ่มข้อมูล"}
-                                color={"blue"}
-                                func={handleCreatetudent}
-                            />
-                        </div>
+            {/* Add student */}
+            <Modal
+                isOpen={isOpenModel}
+                onClose={closeCreate}
+                title="เพิ่มนักเรียน"
+                description={className ? `เพิ่มเข้าห้อง ${className}` : undefined}
+                footer={
+                    <>
+                        <button type="button" className="btn-secondary" onClick={closeCreate}>ยกเลิก</button>
+                        <button type="submit" form="add-student-form" className="btn-primary" disabled={saving}>
+                            {saving ? 'กำลังบันทึก…' : 'บันทึก'}
+                        </button>
+                    </>
+                }
+            >
+                <form id="add-student-form" onSubmit={handleCreatetudent} className="space-y-4" noValidate>
+                    <InputComponet
+                        label="รหัสนักศึกษา"
+                        value={studentID}
+                        OnChange={(value) => setStudentID(value)}
+                        inputMode="numeric"
+                        placeholder="เช่น 672010001"
+                        required
+                    />
+                    <div className="grid grid-cols-2 gap-4 sm:grid-cols-1">
+                        <InputComponet label="ชื่อ" value={firstname} OnChange={(value) => setFirstname(value)} required />
+                        <InputComponet label="นามสกุล" value={lastname} OnChange={(value) => setLastname(value)} required />
                     </div>
-                </div>
+                </form>
+            </Modal>
 
-            )}
+            {/* Upload class photo */}
+            <Modal
+                isOpen={isOpenModelImage}
+                onClose={closeUpload}
+                title="อัปโหลดรูปห้องเรียน"
+                description={photo ? 'รูปใหม่จะแทนที่รูปเดิมของห้องนี้' : 'รูปนี้จะแสดงในหน้าห้องเรียน'}
+                footer={
+                    <>
+                        <button type="button" className="btn-secondary" onClick={closeUpload}>ยกเลิก</button>
+                        <button type="button" className="btn-primary" onClick={handleUpload} disabled={uploading}>
+                            <LuUpload className="h-4 w-4" /> {uploading ? 'กำลังอัปโหลด…' : 'อัปโหลด'}
+                        </button>
+                    </>
+                }
+            >
+                <label htmlFor="class-photo-upload" className={`file-drop ${preview ? 'p-2' : 'aspect-[16/9]'}`}>
+                    {preview ? (
+                        <>
+                            <img src={preview} alt="ตัวอย่างรูปที่เลือก" className="aspect-[16/9] w-full rounded-md object-cover" />
+                            <span className="text-[13px]">คลิกเพื่อเลือกรูปอื่น</span>
+                        </>
+                    ) : (
+                        <>
+                            <LuImagePlus className="h-7 w-7 text-ink-400" />
+                            <span className="font-medium text-ink-700">คลิกเพื่อเลือกรูปภาพ</span>
+                            <span className="text-[13px]">ไฟล์ PNG หรือ JPG แนะนำภาพแนวนอน</span>
+                        </>
+                    )}
+                    <input
+                        type="file"
+                        id="class-photo-upload"
+                        accept="image/*"
+                        className="sr-only"
+                        onChange={handleImageChange}
+                    />
+                </label>
+            </Modal>
 
-            {/* model upload image */}
-            {isOpenModelImage === true ? (
-                <div
-                    className=" fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50"
-                    onClick={() => setIsOpenModelImage(false)}
-                >
-                    <div
-                        className="bg-white rounded-lg p-6 w-full max-w-[30rem] sm:w-96 md:w-1/3 shadow-lg animate-jump-in animate-once animate-ease-out animate-normal animate-fill-forwards"
-                        onClick={(e) => e.stopPropagation()} // ป้องกันคลิกปิดเมื่อคลิกภายใน modal
-                    >
-                        <span className='text-xl font-bold mb-4'>เพิ่มรูปภาพ</span>
-                        <div className="p-5 space-y-5">
-                            <label
-                                htmlFor="file-upload"
-                                className="flex items-center justify-center bg-gray-200  border  border-gray-300"
-                            >
-                                {preview ? (
-                                    <img
-                                        src={preview}
-                                        alt="Preview"
-                                        className="w-full h-full object-cover rounded-lg"
-                                    />
-                                ) : (
-                                    <BiImageAdd size={40} />
-                                )}
-                                <input
-                                    type="file"
-                                    id="file-upload"
-                                    className='hidden'
-                                    onChange={handleImageChange} // ใช้ onChange แทน onClick
-                                />
-                            </label>
-                            <ButtonFullComponent
-                                lable={"บันทึก"}
-                                color={"blue"}
-                                func={handleUpload} // เรียกฟังก์ชัน handleUpload เมื่อคลิก
-                            />
-                        </div>
-                    </div>
-
-                </div>
-            )
-                : (
-                    <p></p>
-                )}
             <ConfirmDeleteModal
                 isOpen={isOpenModelDelete}
                 onClose={() => setIsOpenModelDelete(false)}
                 onConfirm={handleDelete}
+                title="ลบนักเรียน"
+                message="ลบแล้วจะกู้คืนไม่ได้ ต้องการลบนักเรียนคนนี้ออกจากห้องใช่ไหม?"
             />
         </DashMasterLayout>
     );

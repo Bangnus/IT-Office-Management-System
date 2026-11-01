@@ -1,26 +1,19 @@
 import PropTypes from 'prop-types';
-import Navbar from '../../components/Navbar/Navbar';
-import Footer from '../../components/Footer/Footer';
 import { ToastContainer } from 'react-toastify';
-
 import { useEffect } from 'react';
 
-const MasterLayout = ({ children, Navlight, title }) => {
+const APP_NAME = 'IT Office Management System';
 
+/** Layout for public pages (sign in / sign up). */
+const MasterLayout = ({ children, title }) => {
     useEffect(() => {
-        document.title = `${title === undefined ? 'IT OFFICE MANNENTMENT SYSTEM' : `${title} | IT OFFICE MANNENTMENT SYSTEM`}`;
+        document.title = title ? `${title} | ${APP_NAME}` : APP_NAME;
     }, [title]);
 
     return (
         <>
-            <div className='duration-200 font-primaryRegular'>
-                {/* <Navbar lightNav={Navlight} /> */}
-                <main>
-                    {children}
-                </main>
-                {/* <Footer /> */}
-                <ToastContainer />
-            </div>
+            <main>{children}</main>
+            <ToastContainer position="top-right" autoClose={3500} newestOnTop />
         </>
     );
 };

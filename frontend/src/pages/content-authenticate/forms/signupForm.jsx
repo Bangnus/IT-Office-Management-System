@@ -1,18 +1,11 @@
 /* eslint-disable react-hooks/rules-of-hooks */
-// component
-import LogoComponent from '../../../components/Logo/logo'
-import InputComponet from '../../../components/content-input/input-full'
-import OutlineButtonComponent from '../../../components/content-buttons/outline-button'
-import ButtonFullComponent from '../../../components/content-buttons/full-button'
-import GoogleIcon from '../../../assets/Icons/google-icon.png';
-import FacebookIcon from '../../../assets/Icons/facebook-icon.png';
+import InputComponet from '../../../components/content-input/input-full';
+import ButtonFullComponent from '../../../components/content-buttons/full-button';
+import PasswordField from './passwordField';
 import { ToastifyError, ToastifySuccess } from '../../../components/content-alert/toastify';
 import { createUser } from '../../../slicers/authenticateSlicer';
 import { useDispatch } from 'react-redux';
-
-//libs
 import { Link, useNavigate } from 'react-router-dom';
-import {Divider} from 'antd';
 import { useState, useEffect } from 'react';
 import Cookies from 'js-cookie';
 
@@ -26,25 +19,23 @@ const signupForm = () => {
     const [isLoading, setIsLoading] = useState(false);
     const authToken = Cookies.get('authToken');
 
-    const handleSignup = async () => {
+    const handleSignup = async (e) => {
+        e?.preventDefault();
+        if (isLoading) return;
+        if (!firstName.trim() || !lastName.trim() || !username.trim() || !password) {
+            ToastifyError({ label: 'กรุณากรอกข้อมูลให้ครบทุกช่อง' });
+            return;
+        }
+        setIsLoading(true);
         try {
-            setIsLoading(true);
-            if (!firstName ||!lastName ||!username ||!password ) throw 'All fields are required';
-
-        
-            let data = {
-                username: username,
-                firstName: firstName,
-                lastName: lastName,
-                password: password
-            };
-            
+            const data = { username: username.trim(), firstName: firstName.trim(), lastName: lastName.trim(), password };
             const response = await dispatch(createUser(data));
 
-            if (response.payload.status === true) {
-                await localStorage.setItem('username', username);
-                await localStorage.setItem('password', password);
-                ToastifySuccess({ lable: 'Account created successfully' });
+            if (response.payload?.status === true) {
+                // The sign-in page picks these up and signs the new user in automatically
+                localStorage.setItem('username', data.username);
+                localStorage.setItem('password', password);
+                ToastifySuccess({ label: 'สร้างบัญชีสำเร็จ' });
                 setUsername('');
                 setFirstName('');
                 setLastName('');
@@ -52,12 +43,12 @@ const signupForm = () => {
                 setIsLoading(false);
                 navigate('/authenticate/signin');
             } else {
-                ToastifyError({ lable: 'create acount faild' });
+                setIsLoading(false);
+                ToastifyError({ label: response.payload ? 'สร้างบัญชีไม่สำเร็จ ชื่อผู้ใช้นี้อาจถูกใช้แล้ว' : 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ กรุณาลองใหม่อีกครั้ง' });
             }
-        } catch (error) {
+        } catch {
             setIsLoading(false);
-            ToastifyError({ lable: "Username already exists" });
-            console.error(error)
+            ToastifyError({ label: 'สร้างบัญชีไม่สำเร็จ กรุณาลองใหม่อีกครั้ง' });
         }
     };
 
@@ -68,35 +59,28 @@ const signupForm = () => {
     }, [authToken, navigate]);
 
     return (
-        <div className="w-full my-10 px-[10px] xs:my-0 lg:my-0 ">
-            <div className="font-primaryBold text-primary uppercase animate-fade-down animate-once animate-duration-1000 animate-delay-100 text-[25px]">
-                <LogoComponent/>
-            </div>
-            <div className="font-primaryMedium text-[20px] animate-fade-down animate-once animate-duration-1000 xs:text-[18px]">
-                <span>Create account</span>
-            </div>
-            <div className="my-[20px] animate-fade-left animate-once animate-duration-1000">
-                <div className="flex justify-between gap-x-3 xs:flex-col xs:gap-y-5 sm:flex-col sm:gap-y-5 md:flex-col md:gap-y-5 lg:flex-col lg:gap-y-5">
-                    <InputComponet color="blue" label="FirstName" value={firstName} OnChange={setFirstName} />
-                    <InputComponet color="blue" label="LastName" value={lastName} OnChange={setLastName} />
-                </div>
-                <div className="my-5">
-                    <InputComponet color="blue" label="Username" value={username} OnChange={setUsername} />
-                </div>
-                <div className="my-5">
-                    <InputComponet type="password" color="blue" label="password" value={password} OnChange={setPassword} />
-                </div>
-            </div>
-            <div className="animate-fade-up animate-once animate-duration-1000">
-                <ButtonFullComponent color="blue" lable="Create account now" func={handleSignup} isLoading={isLoading} />
-            </div>
-            <div className="text-center mt-5 text-[14px] text-primary animate-fade-up animate-once animate-duration-1000 animate-delay-200  xs:mt-3 ">
-                <Link to="/authenticate/signin">If you account already exists your can click me go to signin.</Link>
-            </div>
-           
-           
-        </div>
-    )
-}
+        <div>
+            <h1 className="text-2xl font-semibold tracking-tight text-ink-900 md:text-xl">สร้างบัญชีใหม่</h1>
+            <p className="mt-1 text-sm text-ink-500">กรอกข้อมูลด้านล่างเพื่อสร้างบัญชีผู้ใช้งาน</p>
 
-export default signupForm
+            <form onSubmit={handleSignup} className="mt-7 space-y-5" noValidate>
+                <div className="grid grid-cols-2 gap-4 sm:grid-cols-1 sm:gap-5">
+                    <InputComponet label="ชื่อ" value={firstName} OnChange={setFirstName} autoComplete="given-name" />
+                    <InputComponet label="นามสกุล" value={lastName} OnChange={setLastName} autoComplete="family-name" />
+                </div>
+                <InputComponet label="ชื่อผู้ใช้" value={username} OnChange={setUsername} autoComplete="username" />
+                <PasswordField value={password} OnChange={setPassword} autoComplete="new-password" />
+                <ButtonFullComponent type="submit" color="blue" lable="สร้างบัญชี" isLoading={isLoading} className="!mt-7" />
+            </form>
+
+            <p className="mt-6 text-center text-sm text-ink-500">
+                มีบัญชีอยู่แล้ว?{' '}
+                <Link to="/authenticate/signin" className="font-medium text-brand-600 hover:text-brand-700 hover:underline">
+                    เข้าสู่ระบบ
+                </Link>
+            </p>
+        </div>
+    );
+};
+
+export default signupForm;
